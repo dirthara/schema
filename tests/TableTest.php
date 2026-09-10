@@ -231,12 +231,12 @@ final class TableTest extends TestCase
     {
         $table = $this->table();
 
-        $table->string('email')->nullable()->unique();
+        $table->string('email')->nullable()->comment('The login address.');
 
         $column = $this->only($table);
 
         self::assertTrue($column->nullable);
-        self::assertTrue($column->unique);
+        self::assertSame('The login address.', $column->comment);
     }
 
     #[Test]

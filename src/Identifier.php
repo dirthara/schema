@@ -14,6 +14,9 @@ final readonly class Identifier
 {
     private const string PATTERN = '/^[A-Za-z_][A-Za-z0-9_]*$/';
 
+    /**
+     * @throws InvalidSchemaException
+     */
     public function __construct(
         public string $name,
     ) {
