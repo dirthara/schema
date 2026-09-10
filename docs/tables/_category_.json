@@ -1,0 +1,10 @@
+{
+  "label": "Defining tables",
+  "position": 5,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Defining tables",
+    "description": "Describe columns, keys and indexes, and change a table that already exists."
+  }
+}

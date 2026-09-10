@@ -1,0 +1,10 @@
+{
+  "label": "Grammars",
+  "position": 6,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Grammars",
+    "description": "How a definition becomes SQL, what each database does differently, and how to add a dialect."
+  }
+}
