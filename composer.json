@@ -1,0 +1,59 @@
+{
+    "name": "dirthara/schema",
+    "description": "Schema definition and migrations for the Dirthara framework",
+    "type": "library",
+    "require": {
+        "php": "^8.5",
+        "ext-pdo": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^12.0"
+    },
+    "suggest": {
+        "ext-pdo_mysql": "To build schema against the MySQL driver",
+        "ext-pdo_pgsql": "To build schema against the PostgreSQL driver",
+        "ext-pdo_sqlite": "To build schema against the SQLite driver",
+        "ext-pdo_sqlsrv": "To build schema against the SQL Server driver"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Dirthara\\Schema\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Dirthara\\Schema\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Dirthara"
+        }
+    ],
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    },
+    "scripts": {
+        "mago": "sh scripts/mago.sh",
+        "fmt": "mago fmt",
+        "fmt-check": "mago fmt --check",
+        "lint": "mago lint",
+        "lint-fix": "mago lint --fix --potentially-unsafe",
+        "analyze": "mago analyze",
+        "guard": "mago guard",
+        "test": "phpunit",
+        "test-coverage": "XDEBUG_MODE=coverage phpunit --coverage-clover=build/coverage/clover.xml",
+        "coverage": "php scripts/coverage.php build/coverage/clover.xml 100",
+        "cs": [
+            "@fmt",
+            "@lint-fix"
+        ],
+        "ci": [
+            "@mago",
+            "@test-coverage",
+            "@coverage"
+        ]
+    }
+}
