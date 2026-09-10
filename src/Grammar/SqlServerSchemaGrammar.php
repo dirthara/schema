@@ -12,7 +12,6 @@ use Dirthara\Schema\Sql\CompiledSchema;
 use Dirthara\Schema\Constraint\PrimaryKey;
 use Dirthara\Database\Connection\Driver\DriverName;
 
-
 use function sprintf;
 use function str_replace;
 
@@ -97,6 +96,11 @@ class SqlServerSchemaGrammar extends SqlSchemaGrammar
     protected function unsigned(Column $column): string
     {
         return '';
+    }
+
+    protected function inlinesIndexes(): bool
+    {
+        return true;
     }
 
     protected function autoIncrement(Column $column, bool $inlinePrimaryKey): string

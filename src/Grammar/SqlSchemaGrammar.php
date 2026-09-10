@@ -113,6 +113,12 @@ abstract class SqlSchemaGrammar implements SchemaGrammar
             $body[] = $this->constraint($constraint);
         }
 
+        if ($this->inlinesIndexes()) {
+            foreach ($indexes as $index) {
+                $body[] = $this->inlineIndex($index);
+            }
+        }
+
         $compiled = new CompiledSchema([
             sprintf(
                 'CREATE TABLE %s%s (%s)',
@@ -122,8 +128,10 @@ abstract class SqlSchemaGrammar implements SchemaGrammar
             ),
         ]);
 
-        foreach ($indexes as $index) {
-            $compiled->addQuery($this->createIndex($name, $index));
+        if (!$this->inlinesIndexes()) {
+            foreach ($indexes as $index) {
+                $compiled->addQuery($this->createIndex($name, $index, $ifNotExists));
+            }
         }
 
         return $compiled;
@@ -217,7 +225,17 @@ abstract class SqlSchemaGrammar implements SchemaGrammar
         return sprintf('ALTER TABLE %s DROP CONSTRAINT %s', $this->wrap($table), $this->wrap($constraint));
     }
 
-    protected function createIndex(Identifier $table, Index $index): string
+    protected function inlinesIndexes(): bool
+    {
+        return false;
+    }
+
+    protected function inlineIndex(Index $index): string
+    {
+        return sprintf('INDEX %s (%s)', $this->wrap($index->name), $this->columnList($index->columns));
+    }
+
+    protected function createIndex(Identifier $table, Index $index, bool $ifNotExists = false): string
     {
         return sprintf(
             'CREATE INDEX %s ON %s (%s)',
@@ -297,7 +315,6 @@ abstract class SqlSchemaGrammar implements SchemaGrammar
     }
 
     /**
-     * @throws UnsupportedDriverException
      * @throws InvalidSchemaException
      */
     protected function column(Column $column, bool $inlinePrimaryKey): string

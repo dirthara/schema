@@ -66,6 +66,11 @@ class MySqlSchemaGrammar extends SqlSchemaGrammar
         return null;
     }
 
+    protected function inlinesIndexes(): bool
+    {
+        return true;
+    }
+
     protected function autoIncrement(Column $column, bool $inlinePrimaryKey): string
     {
         return $column->autoIncrement ? ' AUTO_INCREMENT' : '';

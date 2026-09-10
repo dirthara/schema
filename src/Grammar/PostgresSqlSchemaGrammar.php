@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Dirthara\Schema\Grammar;
 
 use Dirthara\Schema\Identifier;
+use Dirthara\Schema\Index\Index;
 use Dirthara\Schema\Column\Column;
 use Dirthara\Schema\Column\ColumnType;
 use Dirthara\Schema\Sql\CompiledSchema;
@@ -95,6 +96,17 @@ class PostgresSqlSchemaGrammar extends SqlSchemaGrammar
             : sprintf('ALTER COLUMN %s DROP DEFAULT', $name);
 
         return sprintf('ALTER TABLE %s %s', $this->wrap($table), implode(', ', $actions));
+    }
+
+    protected function createIndex(Identifier $table, Index $index, bool $ifNotExists = false): string
+    {
+        return sprintf(
+            'CREATE INDEX %s%s ON %s (%s)',
+            $ifNotExists ? 'IF NOT EXISTS ' : '',
+            $this->wrap($index->name),
+            $this->wrap($table),
+            $this->columnList($index->columns),
+        );
     }
 
     protected function dropIndex(Identifier $table, Identifier $index): string

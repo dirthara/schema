@@ -215,6 +215,29 @@ final class PostgresSqlSchemaGrammarTest extends TestCase
     }
 
     #[Test]
+    public function it_makes_the_index_conditional_when_the_create_is(): void
+    {
+        $table = new Table('users');
+        $table->string('name');
+        $table->index('name');
+
+        self::assertSame(
+            'CREATE INDEX IF NOT EXISTS "users_name_index" ON "users" ("name")',
+            $this->create($table, true)[1],
+        );
+    }
+
+    #[Test]
+    public function it_leaves_the_index_unconditional_when_the_create_is_not(): void
+    {
+        $table = new Table('users');
+        $table->string('name');
+        $table->index('name');
+
+        self::assertSame('CREATE INDEX "users_name_index" ON "users" ("name")', $this->create($table)[1]);
+    }
+
+    #[Test]
     public function it_compiles_a_drop(): void
     {
         self::assertSame(['DROP TABLE "users"'], $this->grammar->compileDrop('users', false)->queries);

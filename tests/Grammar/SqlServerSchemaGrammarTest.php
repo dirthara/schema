@@ -65,13 +65,41 @@ final class SqlServerSchemaGrammarTest extends TestCase
     }
 
     #[Test]
-    public function it_leaves_the_index_statement_unguarded(): void
+    public function it_declares_an_index_inside_the_create(): void
     {
         $table = new Table('users');
         $table->string('name');
         $table->index('name');
 
-        self::assertSame('CREATE INDEX [users_name_index] ON [users] ([name])', $this->create($table, true)[1]);
+        self::assertSame(
+            ['CREATE TABLE [users] ([name] NVARCHAR(255) NOT NULL, INDEX [users_name_index] ([name]))'],
+            $this->create($table),
+        );
+    }
+
+    #[Test]
+    public function it_keeps_a_conditional_create_with_an_index_to_one_guarded_statement(): void
+    {
+        $table = new Table('users');
+        $table->string('name');
+        $table->index('name');
+
+        self::assertSame(
+            [
+                "IF OBJECT_ID(N'[users]', N'U') IS NULL CREATE TABLE [users] "
+                    . '([name] NVARCHAR(255) NOT NULL, INDEX [users_name_index] ([name]))',
+            ],
+            $this->create($table, true),
+        );
+    }
+
+    #[Test]
+    public function it_still_creates_an_index_as_a_statement_when_altering(): void
+    {
+        $table = new Table('users');
+        $table->index('name');
+
+        self::assertSame(['CREATE INDEX [users_name_index] ON [users] ([name])'], $this->alter($table));
     }
 
     #[Test]

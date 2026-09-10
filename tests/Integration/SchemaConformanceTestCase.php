@@ -124,6 +124,21 @@ abstract class SchemaConformanceTestCase extends TestCase
     }
 
     #[Test]
+    public function it_skips_a_create_with_an_index_when_the_table_is_already_there(): void
+    {
+        $definition = static function (Table $table): void {
+            $table->id();
+            $table->string('email', 120);
+            $table->index('email');
+        };
+
+        $this->schema->createIfNotExists(self::TABLE, $definition);
+        $this->schema->createIfNotExists(self::TABLE, $definition);
+
+        self::assertTrue($this->schema->hasTable(self::TABLE));
+    }
+
+    #[Test]
     public function it_drops_a_table(): void
     {
         $this->createUsers();
