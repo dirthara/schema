@@ -9,13 +9,6 @@ use Dirthara\Schema\Table;
 use Dirthara\Schema\Sql\CompiledSchema;
 use Dirthara\Schema\Grammar\SchemaGrammar;
 
-/**
- * Records what it was asked to compile and returns whatever SQL the test set.
- *
- * The real grammars are not written yet, and a test of ConnectedSchema should
- * not depend on a dialect anyway: what it owes is calling the right compile
- * method and running what came back.
- */
 final class RecordingSchemaGrammar implements SchemaGrammar
 {
     /**

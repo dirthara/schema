@@ -6,10 +6,6 @@ namespace Dirthara\Schema\Index;
 
 use Dirthara\Schema\Identifier;
 
-/**
- * A plain index. Uniqueness is a constraint rather than an index here, even
- * where a database happens to implement one with the other.
- */
 final readonly class Index
 {
     /**

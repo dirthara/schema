@@ -13,7 +13,6 @@ use Dirthara\Schema\Change\DropIndex;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Schema\Change\AddConstraint;
 use Dirthara\Schema\Change\DropConstraint;
-
 use Dirthara\Schema\Constraint\PrimaryKey;
 use Dirthara\Schema\Constraint\UniqueConstraint;
 use Dirthara\Schema\Constraint\ReferentialAction;

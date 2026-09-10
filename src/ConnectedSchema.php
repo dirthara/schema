@@ -9,6 +9,7 @@ use Dirthara\Schema\Sql\CompiledSchema;
 use Dirthara\Schema\Grammar\SchemaGrammar;
 use Dirthara\Database\Connection\Connection;
 use Dirthara\Database\Connection\Result\Result;
+use Dirthara\Schema\Exceptions\InvalidSchemaException;
 use Dirthara\Schema\Exceptions\SchemaExecutionException;
 use Dirthara\Schema\Exceptions\SchemaConnectionException;
 use Dirthara\Database\Connection\Exceptions\QueryException;
@@ -27,6 +28,7 @@ final readonly class ConnectedSchema
      *
      * @throws SchemaConnectionException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
      */
     public function create(string $table, Closure $callback): void
     {
@@ -44,6 +46,7 @@ final readonly class ConnectedSchema
      *
      * @throws SchemaConnectionException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
      */
     public function createIfNotExists(string $table, Closure $callback): void
     {
@@ -61,6 +64,7 @@ final readonly class ConnectedSchema
      *
      * @throws SchemaConnectionException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
      */
     public function table(string $table, Closure $callback): void
     {
@@ -107,6 +111,8 @@ final readonly class ConnectedSchema
 
     /**
      * @param Closure(Table): void $callback
+     *
+     * @throws InvalidSchemaException
      */
     private function define(string $table, Closure $callback): Table
     {
@@ -118,13 +124,6 @@ final readonly class ConnectedSchema
     }
 
     /**
-     * Runs every compiled statement in order.
-     *
-     * A compiled schema is a list rather than one string because a single
-     * operation can need several statements, and the connection prepares what
-     * it is given. A driver rejects two statements sent as one prepared
-     * statement, so they are sent one at a time.
-     *
      * @param array<string, mixed> $extra
      *
      * @throws SchemaConnectionException

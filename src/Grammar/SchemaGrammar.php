@@ -17,8 +17,5 @@ interface SchemaGrammar
 
     public function compileRename(string $from, string $to): CompiledSchema;
 
-    /**
-     * Compiles a query whose result set is empty when the table does not exist.
-     */
     public function compileHasTable(string $table): CompiledSchema;
 }

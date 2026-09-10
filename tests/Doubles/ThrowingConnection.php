@@ -11,13 +11,6 @@ use Dirthara\Database\Connection\Result\Result;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Database\Connection\Transaction\TransactionManager;
 
-/**
- * Fails every query with the exception the test chose.
- *
- * A real SQLite connection cannot be made to raise a ConnectionException on
- * demand, and the two catch arms in ConnectedSchema translate to different
- * exceptions, so the difference has to be observable.
- */
 final class ThrowingConnection implements Connection
 {
     public function __construct(

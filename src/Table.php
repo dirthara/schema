@@ -299,9 +299,6 @@ final class Table
     }
 
     /**
-     * A primary key is named after the table alone, because a table has only
-     * one and the columns it covers can change without the name having to.
-     *
      * @param string|list<string> $columns
      *
      * @throws InvalidSchemaException
@@ -364,13 +361,6 @@ final class Table
     }
 
     /**
-     * Everything the definition asked for, in the order it was asked for,
-     * with the constraints a column flagged for itself appended after it.
-     *
-     * A grammar reads uniqueness and primary keys as constraints and nowhere
-     * else, so `$table->string('email')->unique()` and `$table->unique('email')`
-     * arrive as the same thing.
-     *
      * @return list<Change>
      *
      * @throws InvalidSchemaException
@@ -424,11 +414,6 @@ final class Table
     }
 
     /**
-     * The constraints a column asked for with a modifier rather than a call.
-     *
-     * Every column flagged primary joins one key, because a table has one
-     * primary key covering however many columns it covers.
-     *
      * @return list<AddConstraint>
      *
      * @throws InvalidSchemaException
@@ -439,9 +424,11 @@ final class Table
         $flagged = [];
 
         foreach ($this->entries as $entry) {
-            if (!($entry instanceof Column && $entry->primary)) { continue; }
+            if (!($entry instanceof Column && $entry->primary)) {
+                continue;
+            }
 
-$primary[] = $entry->name;
+            $primary[] = $entry->name;
         }
 
         if ($primary !== []) {
@@ -449,11 +436,13 @@ $primary[] = $entry->name;
         }
 
         foreach ($this->entries as $entry) {
-            if (!($entry instanceof Column && $entry->unique)) { continue; }
+            if (!($entry instanceof Column && $entry->unique)) {
+                continue;
+            }
 
-$flagged[] = new AddConstraint(new UniqueConstraint($this->keyName(null, [$entry->name], 'unique'), [
-                    $entry->name,
-                ]));
+            $flagged[] = new AddConstraint(new UniqueConstraint($this->keyName(null, [$entry->name], 'unique'), [
+                $entry->name,
+            ]));
         }
 
         return $flagged;
@@ -469,9 +458,11 @@ $flagged[] = new AddConstraint(new UniqueConstraint($this->keyName(null, [$entry
         $primaries = 0;
 
         foreach ($changes as $change) {
-            if (!($change instanceof AddConstraint && $change->constraint instanceof PrimaryKey)) { continue; }
+            if (!($change instanceof AddConstraint && $change->constraint instanceof PrimaryKey)) {
+                continue;
+            }
 
-$primaries++;
+            $primaries++;
         }
 
         if ($primaries > 1) {
@@ -529,7 +520,6 @@ $primaries++;
      *
      * @return list<Identifier>
      *
-     * @throws InvalidSchemaException
      * @throws InvalidTableDefinitionException
      */
     private function keyColumns(string|array $columns): array
@@ -547,10 +537,6 @@ $primaries++;
     }
 
     /**
-     * The name a caller gave, or one built from the table, the columns and
-     * what the key is for. A generated name is what `dropIndex()` and
-     * `dropConstraint()` are given later, so it has to be predictable.
-     *
      * @param list<Identifier> $columns
      *
      * @throws InvalidSchemaException

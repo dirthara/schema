@@ -12,14 +12,6 @@ use function sprintf;
 use function array_map;
 use function array_values;
 
-/**
- * A reference from this table's columns to another table's columns.
- *
- * The target is chained on rather than required up front, so a definition
- * reads in the order it is spoken: these columns reference that column on
- * that table. A key that never got a target is caught when the definition is
- * read, not silently compiled into nothing.
- */
 final class ForeignKey implements Constraint
 {
     public private(set) ?Identifier $on = null;
@@ -42,8 +34,6 @@ final class ForeignKey implements Constraint
     ) {}
 
     /**
-     * The columns this key points at on the referenced table.
-     *
      * @throws InvalidSchemaException
      */
     public function references(string ...$columns): self
@@ -80,9 +70,6 @@ final class ForeignKey implements Constraint
         return $this;
     }
 
-    /**
-     * Why this key cannot be compiled yet, or null when it can.
-     */
     public function incompleteness(): ?string
     {
         if ($this->on === null) {

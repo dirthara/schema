@@ -25,9 +25,6 @@ final class TableTest extends TestCase
         return new Table($name);
     }
 
-    /**
-     * Reads the single column a one-column definition recorded.
-     */
     private function only(Table $table): Column
     {
         $changes = $table->changes();
