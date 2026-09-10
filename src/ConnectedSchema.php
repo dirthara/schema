@@ -12,8 +12,10 @@ use Dirthara\Database\Connection\Result\Result;
 use Dirthara\Schema\Exceptions\InvalidSchemaException;
 use Dirthara\Schema\Exceptions\SchemaExecutionException;
 use Dirthara\Schema\Exceptions\SchemaConnectionException;
+use Dirthara\Schema\Exceptions\UnsupportedDriverException;
 use Dirthara\Database\Connection\Exceptions\QueryException;
 use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
+use Dirthara\Schema\Exceptions\InvalidTableDefinitionException;
 use Dirthara\Database\Connection\Exceptions\ConnectionException;
 
 final readonly class ConnectedSchema
@@ -29,13 +31,15 @@ final readonly class ConnectedSchema
      * @throws SchemaConnectionException
      * @throws SchemaExecutionException
      * @throws InvalidSchemaException
+     * @throws InvalidTableDefinitionException
+     * @throws UnsupportedDriverException
      */
     public function create(string $table, Closure $callback): void
     {
         $definition = $this->define($table, $callback);
 
         $this->execute(
-            $this->grammar->compileCreate(table: $table, definition: $definition, ifNotExists: false),
+            $this->grammar->compileCreate(definition: $definition, ifNotExists: false),
             Operation::Create,
             $table,
         );
@@ -47,13 +51,15 @@ final readonly class ConnectedSchema
      * @throws SchemaConnectionException
      * @throws SchemaExecutionException
      * @throws InvalidSchemaException
+     * @throws InvalidTableDefinitionException
+     * @throws UnsupportedDriverException
      */
     public function createIfNotExists(string $table, Closure $callback): void
     {
         $definition = $this->define($table, $callback);
 
         $this->execute(
-            $this->grammar->compileCreate(table: $table, definition: $definition, ifNotExists: true),
+            $this->grammar->compileCreate(definition: $definition, ifNotExists: true),
             Operation::CreateIfNotExists,
             $table,
         );
@@ -65,17 +71,21 @@ final readonly class ConnectedSchema
      * @throws SchemaConnectionException
      * @throws SchemaExecutionException
      * @throws InvalidSchemaException
+     * @throws InvalidTableDefinitionException
+     * @throws UnsupportedDriverException
      */
     public function table(string $table, Closure $callback): void
     {
         $definition = $this->define($table, $callback);
 
-        $this->execute($this->grammar->compileAlter(table: $table, definition: $definition), Operation::Alter, $table);
+        $this->execute($this->grammar->compileAlter($definition), Operation::Alter, $table);
     }
 
     /**
      * @throws SchemaConnectionException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
+     * @throws UnsupportedDriverException
      */
     public function drop(string $table): void
     {
@@ -85,6 +95,8 @@ final readonly class ConnectedSchema
     /**
      * @throws SchemaConnectionException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
+     * @throws UnsupportedDriverException
      */
     public function dropIfExists(string $table): void
     {
@@ -94,6 +106,8 @@ final readonly class ConnectedSchema
     /**
      * @throws SchemaConnectionException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
+     * @throws UnsupportedDriverException
      */
     public function rename(string $from, string $to): void
     {
@@ -103,6 +117,8 @@ final readonly class ConnectedSchema
     /**
      * @throws SchemaConnectionException
      * @throws SchemaIntrospectionException
+     * @throws InvalidSchemaException
+     * @throws UnsupportedDriverException
      */
     public function hasTable(string $table): bool
     {
@@ -128,6 +144,8 @@ final readonly class ConnectedSchema
      *
      * @throws SchemaConnectionException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
+     * @throws UnsupportedDriverException
      */
     private function execute(CompiledSchema $schema, Operation $operation, string $table, array $extra = []): void
     {
@@ -153,6 +171,8 @@ final readonly class ConnectedSchema
     /**
      * @throws SchemaConnectionException
      * @throws SchemaIntrospectionException
+     * @throws InvalidSchemaException
+     * @throws UnsupportedDriverException
      */
     private function introspect(CompiledSchema $schema, string $table): Result
     {

@@ -23,19 +23,23 @@ final class RecordingSchemaGrammar implements SchemaGrammar
         public array $queries = ['SELECT 1'],
     ) {}
 
-    public function compileCreate(string $table, Table $definition, bool $ifNotExists): CompiledSchema
+    public function compileCreate(Table $definition, bool $ifNotExists): CompiledSchema
     {
         return $this->record([
             'method' => 'compileCreate',
-            'table' => $table,
+            'table' => $definition->name->name,
             'definition' => $definition,
             'ifNotExists' => $ifNotExists,
         ]);
     }
 
-    public function compileAlter(string $table, Table $definition): CompiledSchema
+    public function compileAlter(Table $definition): CompiledSchema
     {
-        return $this->record(['method' => 'compileAlter', 'table' => $table, 'definition' => $definition]);
+        return $this->record([
+            'method' => 'compileAlter',
+            'table' => $definition->name->name,
+            'definition' => $definition,
+        ]);
     }
 
     public function compileDrop(string $table, bool $ifExists): CompiledSchema

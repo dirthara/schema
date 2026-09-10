@@ -31,8 +31,6 @@ final class Column
 
     public private(set) bool $unsigned = false;
 
-    public private(set) ?string $comment = null;
-
     public private(set) bool $changed = false;
 
     public function __construct(
@@ -126,13 +124,6 @@ final class Column
     public function unsigned(bool $unsigned = true): self
     {
         $this->unsigned = $unsigned;
-
-        return $this;
-    }
-
-    public function comment(string $comment): self
-    {
-        $this->comment = $comment;
 
         return $this;
     }

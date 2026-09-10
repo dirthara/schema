@@ -11,7 +11,7 @@ Inside a `create()` or `table()` callback, each method on `Table` declares one
 column and returns it, so modifiers chain.
 
 ```php
-$table->string('email', 255)->nullable()->default(null)->comment('Login address');
+$table->string('email', 255)->nullable()->default(null);
 ```
 
 ## Column types
@@ -62,7 +62,6 @@ Every modifier returns the column.
 | `autoIncrement(bool $autoIncrement = true)` | off | The database generates the value. |
 | `primary(bool $primary = true)` | off | Joins the table's primary key. |
 | `unique(bool $unique = true)` | off | Adds a unique constraint. |
-| `comment(string $comment)` | none | Stored on the column where the database supports it. |
 | `change(bool $changed = true)` | off | Marks this as a change to an existing column. See [Altering tables](altering-tables.md). |
 
 Each flag takes a boolean, so `nullable(false)` turns one back off — useful when

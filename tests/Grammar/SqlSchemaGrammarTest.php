@@ -29,7 +29,7 @@ final class SqlSchemaGrammarTest extends TestCase
      */
     private function alter(Table $table): array
     {
-        return $this->grammar->compileAlter($table->name->name, $table)->queries;
+        return $this->grammar->compileAlter($table)->queries;
     }
 
     #[Test]
@@ -43,7 +43,7 @@ final class SqlSchemaGrammarTest extends TestCase
                 'CREATE TABLE "users" ("id" BIG_INTEGER UNSIGNED NOT NULL, '
                     . 'CONSTRAINT "users_primary" PRIMARY KEY ("id"))',
             ],
-            $this->grammar->compileCreate('users', $table, false)->queries,
+            $this->grammar->compileCreate($table, false)->queries,
         );
     }
 
@@ -129,7 +129,7 @@ final class SqlSchemaGrammarTest extends TestCase
         $this->expectException(InvalidSchemaException::class);
         $this->expectExceptionMessage('A default value cannot contain a null byte.');
 
-        $this->grammar->compileCreate('users', $table, false);
+        $this->grammar->compileCreate($table, false);
     }
 
     #[Test]
@@ -139,7 +139,7 @@ final class SqlSchemaGrammarTest extends TestCase
         $table->string('status')->default("pending\0truncated");
 
         try {
-            $this->grammar->compileCreate('users', $table, false);
+            $this->grammar->compileCreate($table, false);
         } catch (InvalidSchemaException $exception) {
             self::assertSame(['driver' => 'mysql'], $exception->getContext());
         }

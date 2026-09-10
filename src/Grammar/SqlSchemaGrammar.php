@@ -56,9 +56,9 @@ abstract class SqlSchemaGrammar implements SchemaGrammar
      * @throws UnsupportedDriverException
      * @throws InvalidTableDefinitionException
      */
-    public function compileCreate(string $table, Table $definition, bool $ifNotExists): CompiledSchema
+    public function compileCreate(Table $definition, bool $ifNotExists): CompiledSchema
     {
-        $name = $this->identifier($table);
+        $name = $definition->name;
 
         $columns = [];
         $constraints = [];
@@ -142,9 +142,9 @@ abstract class SqlSchemaGrammar implements SchemaGrammar
      * @throws InvalidTableDefinitionException
      * @throws UnsupportedDriverException
      */
-    public function compileAlter(string $table, Table $definition): CompiledSchema
+    public function compileAlter(Table $definition): CompiledSchema
     {
-        $name = $this->identifier($table);
+        $name = $definition->name;
 
         $compiled = new CompiledSchema([]);
 

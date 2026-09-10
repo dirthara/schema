@@ -17,9 +17,9 @@ use function str_replace;
 
 class SqlServerSchemaGrammar extends SqlSchemaGrammar
 {
-    public function compileCreate(string $table, Table $definition, bool $ifNotExists): CompiledSchema
+    public function compileCreate(Table $definition, bool $ifNotExists): CompiledSchema
     {
-        $queries = parent::compileCreate($table, $definition, false)->queries;
+        $queries = parent::compileCreate($definition, false)->queries;
 
         if (!$ifNotExists) {
             return new CompiledSchema($queries);
@@ -27,7 +27,7 @@ class SqlServerSchemaGrammar extends SqlSchemaGrammar
 
         $queries[0] = sprintf(
             "IF OBJECT_ID(%s, N'U') IS NULL %s",
-            $this->literal($this->wrap($this->identifier($table))),
+            $this->literal($this->wrap($definition->name)),
             $queries[0],
         );
 

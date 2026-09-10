@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Dirthara\Schema\Sql;
 
-use function implode;
-
 final class CompiledSchema
 {
     /**
@@ -18,10 +16,5 @@ final class CompiledSchema
     public function addQuery(string $query): void
     {
         $this->queries[] = $query;
-    }
-
-    public function toSql(): string
-    {
-        return implode(';', $this->queries);
     }
 }

@@ -28,18 +28,4 @@ final class CompiledSchemaTest extends TestCase
 
         self::assertSame(['CREATE TABLE users (id INTEGER)', 'CREATE INDEX users_id ON users (id)'], $schema->queries);
     }
-
-    #[Test]
-    public function it_joins_its_queries_into_one_statement(): void
-    {
-        $schema = new CompiledSchema(['SELECT 1', 'SELECT 2']);
-
-        self::assertSame('SELECT 1;SELECT 2', $schema->toSql());
-    }
-
-    #[Test]
-    public function it_joins_a_single_query_into_itself(): void
-    {
-        self::assertSame('SELECT 1', new CompiledSchema(['SELECT 1'])->toSql());
-    }
 }

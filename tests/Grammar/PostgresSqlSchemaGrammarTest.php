@@ -31,7 +31,7 @@ final class PostgresSqlSchemaGrammarTest extends TestCase
      */
     private function create(Table $table, bool $ifNotExists = false): array
     {
-        return $this->grammar->compileCreate($table->name->name, $table, $ifNotExists)->queries;
+        return $this->grammar->compileCreate($table, $ifNotExists)->queries;
     }
 
     /**
@@ -39,7 +39,7 @@ final class PostgresSqlSchemaGrammarTest extends TestCase
      */
     private function alter(Table $table): array
     {
-        return $this->grammar->compileAlter($table->name->name, $table)->queries;
+        return $this->grammar->compileAlter($table)->queries;
     }
 
     #[Test]

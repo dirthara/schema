@@ -8,10 +8,12 @@ use Closure;
 use Dirthara\Database\Database;
 use Dirthara\Schema\Grammar\SchemaGrammarResolver;
 use Dirthara\Database\Exceptions\DatabaseException;
+use Dirthara\Schema\Exceptions\InvalidSchemaException;
 use Dirthara\Schema\Exceptions\SchemaExecutionException;
 use Dirthara\Schema\Exceptions\SchemaConnectionException;
 use Dirthara\Schema\Exceptions\UnsupportedDriverException;
 use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
+use Dirthara\Schema\Exceptions\InvalidTableDefinitionException;
 
 final readonly class Schema
 {
@@ -44,6 +46,8 @@ final readonly class Schema
      * @throws SchemaConnectionException
      * @throws UnsupportedDriverException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
+     * @throws InvalidTableDefinitionException
      */
     public function create(string $table, Closure $callback, ?string $connection = null): void
     {
@@ -56,6 +60,8 @@ final readonly class Schema
      * @throws SchemaConnectionException
      * @throws UnsupportedDriverException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
+     * @throws InvalidTableDefinitionException
      */
     public function createIfNotExists(string $table, Closure $callback, ?string $connection = null): void
     {
@@ -68,6 +74,8 @@ final readonly class Schema
      * @throws SchemaConnectionException
      * @throws UnsupportedDriverException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
+     * @throws InvalidTableDefinitionException
      */
     public function table(string $table, Closure $callback, ?string $connection = null): void
     {
@@ -78,6 +86,8 @@ final readonly class Schema
      * @throws SchemaConnectionException
      * @throws UnsupportedDriverException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
+     * @throws InvalidTableDefinitionException
      */
     public function drop(string $table, ?string $connection = null): void
     {
@@ -88,6 +98,8 @@ final readonly class Schema
      * @throws SchemaConnectionException
      * @throws UnsupportedDriverException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
+     * @throws InvalidTableDefinitionException
      */
     public function dropIfExists(string $table, ?string $connection = null): void
     {
@@ -98,6 +110,8 @@ final readonly class Schema
      * @throws SchemaConnectionException
      * @throws UnsupportedDriverException
      * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
+     * @throws InvalidTableDefinitionException
      */
     public function rename(string $from, string $to, ?string $connection = null): void
     {

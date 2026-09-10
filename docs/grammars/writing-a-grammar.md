@@ -15,9 +15,9 @@ database means writing one and registering it.
 ```php
 interface SchemaGrammar
 {
-    public function compileCreate(string $table, Table $definition, bool $ifNotExists): CompiledSchema;
+    public function compileCreate(Table $definition, bool $ifNotExists): CompiledSchema;
 
-    public function compileAlter(string $table, Table $definition): CompiledSchema;
+    public function compileAlter(Table $definition): CompiledSchema;
 
     public function compileDrop(string $table, bool $ifExists): CompiledSchema;
 

@@ -36,7 +36,6 @@ final class ColumnTest extends TestCase
         self::assertNull($column->length);
         self::assertNull($column->precision);
         self::assertNull($column->scale);
-        self::assertNull($column->comment);
         self::assertFalse($column->nullable);
         self::assertFalse($column->hasDefault);
         self::assertNull($column->default);
@@ -60,19 +59,17 @@ final class ColumnTest extends TestCase
         self::assertSame($column, $column->primary());
         self::assertSame($column, $column->unique());
         self::assertSame($column, $column->unsigned());
-        self::assertSame($column, $column->comment('note'));
         self::assertSame($column, $column->change());
     }
 
     #[Test]
     public function it_applies_a_chain_of_modifiers(): void
     {
-        $column = $this->column()->length(255)->nullable()->unique()->comment('The login address.');
+        $column = $this->column()->length(255)->nullable()->unique();
 
         self::assertSame(255, $column->length);
         self::assertTrue($column->nullable);
         self::assertTrue($column->unique);
-        self::assertSame('The login address.', $column->comment);
     }
 
     #[Test]
