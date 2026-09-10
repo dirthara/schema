@@ -287,6 +287,22 @@ abstract class SchemaConformanceTestCase extends TestCase
     }
 
     #[Test]
+    public function it_applies_a_default_that_needs_escaping(): void
+    {
+        $this->schema->create(self::TABLE, static function (Table $table): void {
+            $table->id();
+            $table->string('email', 120);
+            $table->string('quirky', 40)->default("O'Brien\\");
+        });
+
+        $this->insert('email', "'ada@example.com'");
+
+        $row = $this->connection->execute(sprintf('SELECT quirky FROM %s', self::TABLE))->first();
+
+        self::assertSame("O'Brien\\", $row['quirky'] ?? $row['QUIRKY'] ?? null);
+    }
+
+    #[Test]
     public function it_auto_increments_the_key(): void
     {
         $this->createUsers();
