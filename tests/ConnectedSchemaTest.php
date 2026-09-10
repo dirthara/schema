@@ -82,7 +82,7 @@ final class ConnectedSchemaTest extends TestCase
         });
 
         self::assertInstanceOf(Table::class, $received);
-        self::assertSame('users', $received->name);
+        self::assertSame('users', $received->name->name);
     }
 
     #[Test]
