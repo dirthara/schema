@@ -362,6 +362,11 @@ abstract class SqlSchemaGrammar implements SchemaGrammar
             ]);
         }
 
+        return $this->stringLiteral($value);
+    }
+
+    protected function stringLiteral(string $value): string
+    {
         return "'" . $this->escape($value) . "'";
     }
 
