@@ -14,8 +14,11 @@ identifiers validated and quoted for the database they are compiled for.
 composer require dirthara/schema
 ```
 
-The package requires PHP 8.5 and the `pdo` extension. Each database also needs
-its own PDO extension: `pdo_mysql`, `pdo_pgsql`, `pdo_sqlite`, or `pdo_sqlsrv`.
+The package requires PHP 8.5, the `pdo` extension, and
+[`dirthara/database`](https://github.com/dirthara/database) `^0.1`, which
+Composer installs for you. That package owns the connections, drivers, and
+grammars; this one compiles schema for them. Each database also needs its own
+PDO extension: `pdo_mysql`, `pdo_pgsql`, `pdo_sqlite`, or `pdo_sqlsrv`.
 
 Usage documentation lives in [`docs`](docs), which is published as a Docusaurus
 site by a separate package.

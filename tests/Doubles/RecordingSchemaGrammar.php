@@ -1,0 +1,80 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Dirthara\Schema\Tests\Doubles;
+
+use LogicException;
+use Dirthara\Schema\Table;
+use Dirthara\Schema\Sql\CompiledSchema;
+use Dirthara\Schema\Grammar\SchemaGrammar;
+
+/**
+ * Records what it was asked to compile and returns whatever SQL the test set.
+ *
+ * The real grammars are not written yet, and a test of ConnectedSchema should
+ * not depend on a dialect anyway: what it owes is calling the right compile
+ * method and running what came back.
+ */
+final class RecordingSchemaGrammar implements SchemaGrammar
+{
+    /**
+     * @var list<array<string, mixed>>
+     */
+    public array $calls = [];
+
+    /**
+     * @param list<string> $queries
+     */
+    public function __construct(
+        public array $queries = ['SELECT 1'],
+    ) {}
+
+    public function compileCreate(string $table, Table $definition, bool $ifNotExists): CompiledSchema
+    {
+        return $this->record([
+            'method' => 'compileCreate',
+            'table' => $table,
+            'definition' => $definition,
+            'ifNotExists' => $ifNotExists,
+        ]);
+    }
+
+    public function compileAlter(string $table, Table $definition): CompiledSchema
+    {
+        return $this->record(['method' => 'compileAlter', 'table' => $table, 'definition' => $definition]);
+    }
+
+    public function compileDrop(string $table, bool $ifExists): CompiledSchema
+    {
+        return $this->record(['method' => 'compileDrop', 'table' => $table, 'ifExists' => $ifExists]);
+    }
+
+    public function compileRename(string $from, string $to): CompiledSchema
+    {
+        return $this->record(['method' => 'compileRename', 'from' => $from, 'to' => $to]);
+    }
+
+    public function compileHasTable(string $table): CompiledSchema
+    {
+        return $this->record(['method' => 'compileHasTable', 'table' => $table]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function lastCall(): array
+    {
+        return $this->calls[count($this->calls) - 1] ?? throw new LogicException('Nothing has been compiled yet.');
+    }
+
+    /**
+     * @param array<string, mixed> $call
+     */
+    private function record(array $call): CompiledSchema
+    {
+        $this->calls[] = $call;
+
+        return new CompiledSchema($this->queries);
+    }
+}

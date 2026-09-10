@@ -66,9 +66,9 @@ work into a released line, which is how a patch release ends up containing a
 feature.
 
 Expect conflicts in `composer.json` and `.github/workflows/ci.yml` when the
-branches support different PHP versions. Resolve them in favour of the branch
-you are merging into — the newer branch keeps its own constraint and its own
-matrix.
+branches support different PHP versions, or when they pin different
+`dirthara/database` lines. Resolve them in favour of the branch you are merging
+into — the newer branch keeps its own constraints and its own matrix.
 
 ### PHP versions are per branch
 
