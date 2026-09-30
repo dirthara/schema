@@ -8,6 +8,7 @@ use Throwable;
 use LogicException;
 use Dirthara\Database\Connection\Connection;
 use Dirthara\Database\Connection\Result\Result;
+use Dirthara\Database\Connection\Lock\LockManager;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Database\Connection\Transaction\TransactionManager;
 
@@ -32,6 +33,11 @@ final class ThrowingConnection implements Connection
     public function transactions(): TransactionManager
     {
         throw new LogicException('The test double does not manage transactions.');
+    }
+
+    public function locks(): LockManager
+    {
+        throw new LogicException('The test double does not manage locks.');
     }
 
     public function disconnect(): void {}

@@ -9,14 +9,14 @@ use Dirthara\Schema\Sql\CompiledSchema;
 use Dirthara\Schema\Grammar\SchemaGrammar;
 use Dirthara\Database\Connection\Connection;
 use Dirthara\Database\Connection\Result\Result;
+use Dirthara\Database\Exception\QueryException;
+use Dirthara\Database\Exception\ConnectionException;
 use Dirthara\Schema\Exceptions\InvalidSchemaException;
 use Dirthara\Schema\Exceptions\SchemaExecutionException;
 use Dirthara\Schema\Exceptions\SchemaConnectionException;
 use Dirthara\Schema\Exceptions\UnsupportedDriverException;
-use Dirthara\Database\Connection\Exceptions\QueryException;
 use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
 use Dirthara\Schema\Exceptions\InvalidTableDefinitionException;
-use Dirthara\Database\Connection\Exceptions\ConnectionException;
 
 final readonly class ConnectedSchema
 {

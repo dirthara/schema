@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Schema\Exceptions;
 
-use Dirthara\Database\Exceptions\DatabaseException;
+use Dirthara\Database\Exception\DatabaseException;
 
 final class SchemaConnectionException extends SchemaException
 {

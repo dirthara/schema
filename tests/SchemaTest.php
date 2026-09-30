@@ -14,15 +14,16 @@ use Dirthara\Schema\Grammar\SchemaGrammarResolver;
 use Dirthara\Database\Connection\ConnectionFactory;
 use Dirthara\Database\Connection\ConnectionManager;
 use Dirthara\Database\Connection\Driver\DriverName;
+use Dirthara\Database\Exception\ConnectionException;
 use Dirthara\Database\Connection\Driver\SQLiteDriver;
 use Dirthara\Schema\Exceptions\SchemaExecutionException;
 use Dirthara\Database\Query\Grammar\QueryGrammarResolver;
 use Dirthara\Schema\Exceptions\SchemaConnectionException;
 use Dirthara\Schema\Tests\Doubles\RecordingSchemaGrammar;
 use Dirthara\Schema\Exceptions\UnsupportedDriverException;
+use Dirthara\Database\Exception\ConnectionRegistryException;
 use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
-use Dirthara\Database\Connection\Exceptions\ConnectionException;
 use Dirthara\Database\Connection\Transaction\StandardTransactionGrammar;
 
 final class SchemaTest extends TestCase
@@ -83,7 +84,7 @@ final class SchemaTest extends TestCase
     public function it_reports_an_unconfigured_connection(): void
     {
         $this->expectException(SchemaConnectionException::class);
-        $this->expectExceptionMessage('The requested database connection is not configured.');
+        $this->expectExceptionMessage('The database connection "missing" is not configured.');
 
         $this->schema()->using('missing');
     }
@@ -94,7 +95,7 @@ final class SchemaTest extends TestCase
         try {
             $this->schema()->using('missing');
         } catch (SchemaConnectionException $exception) {
-            self::assertInstanceOf(ConnectionException::class, $exception->getPrevious());
+            self::assertInstanceOf(ConnectionRegistryException::class, $exception->getPrevious());
         }
     }
 

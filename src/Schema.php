@@ -6,8 +6,8 @@ namespace Dirthara\Schema;
 
 use Closure;
 use Dirthara\Database\Database;
+use Dirthara\Database\Exception\DatabaseException;
 use Dirthara\Schema\Grammar\SchemaGrammarResolver;
-use Dirthara\Database\Exceptions\DatabaseException;
 use Dirthara\Schema\Exceptions\InvalidSchemaException;
 use Dirthara\Schema\Exceptions\SchemaExecutionException;
 use Dirthara\Schema\Exceptions\SchemaConnectionException;

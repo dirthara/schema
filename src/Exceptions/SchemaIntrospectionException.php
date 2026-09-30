@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Schema\Exceptions;
 
-use Dirthara\Database\Connection\Exceptions\QueryException;
+use Dirthara\Database\Exception\QueryException;
 
 final class SchemaIntrospectionException extends SchemaException
 {

@@ -5,23 +5,24 @@ declare(strict_types=1);
 namespace Dirthara\Schema\Tests;
 
 use Throwable;
+use PDOException;
 use Dirthara\Schema\Table;
 use PHPUnit\Framework\TestCase;
 use Dirthara\Schema\ConnectedSchema;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Database\Connection\Connection;
 use Dirthara\Database\Connection\PdoConnection;
+use Dirthara\Database\Exception\QueryException;
 use Dirthara\Database\Connection\Driver\DriverName;
+use Dirthara\Database\Exception\ConnectionException;
 use Dirthara\Database\Connection\Driver\SQLiteDriver;
 use Dirthara\Schema\Tests\Doubles\ThrowingConnection;
 use Dirthara\Schema\Exceptions\SchemaExecutionException;
 use Dirthara\Schema\Exceptions\SchemaConnectionException;
 use Dirthara\Schema\Tests\Doubles\RecordingSchemaGrammar;
-use Dirthara\Database\Connection\Exceptions\QueryException;
 use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
 use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
-use Dirthara\Database\Connection\Exceptions\ConnectionException;
 use Dirthara\Database\Connection\Transaction\StandardTransactionGrammar;
 
 final class ConnectedSchemaTest extends TestCase
@@ -54,6 +55,14 @@ final class ConnectedSchemaTest extends TestCase
         $this->grammar->queries = $queries;
 
         return $this->schema();
+    }
+
+    private function connectionFailure(): ConnectionException
+    {
+        return ConnectionException::connectFailed(
+            new ConnectionConfig(driver: DriverName::SQLite, name: 'reporting', database: ':memory:'),
+            new PDOException('The server is unreachable.'),
+        );
     }
 
     private function failingWith(Throwable $failure): ConnectedSchema
@@ -307,10 +316,10 @@ final class ConnectedSchemaTest extends TestCase
     #[Test]
     public function it_translates_a_connection_failure_while_executing(): void
     {
-        $schema = $this->failingWith(new ConnectionException('The server is unreachable.'));
+        $schema = $this->failingWith($this->connectionFailure());
 
         $this->expectException(SchemaConnectionException::class);
-        $this->expectExceptionMessage('The server is unreachable.');
+        $this->expectExceptionMessage('Unable to connect to the SQLite database of connection "reporting".');
 
         $schema->drop('users');
     }
@@ -319,7 +328,7 @@ final class ConnectedSchemaTest extends TestCase
     public function it_describes_the_connection_that_failed_while_executing(): void
     {
         try {
-            $this->failingWith(new ConnectionException('The server is unreachable.'))->drop('users');
+            $this->failingWith($this->connectionFailure())->drop('users');
         } catch (SchemaConnectionException $exception) {
             self::assertSame(
                 [
@@ -337,7 +346,7 @@ final class ConnectedSchemaTest extends TestCase
     #[Test]
     public function it_translates_a_connection_failure_while_introspecting(): void
     {
-        $schema = $this->failingWith(new ConnectionException('The server is unreachable.'));
+        $schema = $this->failingWith($this->connectionFailure());
 
         $this->expectException(SchemaConnectionException::class);
 
@@ -348,7 +357,7 @@ final class ConnectedSchemaTest extends TestCase
     public function it_describes_the_connection_that_failed_while_introspecting(): void
     {
         try {
-            $this->failingWith(new ConnectionException('The server is unreachable.'))->hasTable('users');
+            $this->failingWith($this->connectionFailure())->hasTable('users');
         } catch (SchemaConnectionException $exception) {
             self::assertSame(
                 [

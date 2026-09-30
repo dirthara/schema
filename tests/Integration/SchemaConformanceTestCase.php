@@ -13,8 +13,8 @@ use Dirthara\Schema\Grammar\SchemaGrammar;
 use Dirthara\Database\Connection\Connection;
 use Dirthara\Database\Connection\Driver\Driver;
 use Dirthara\Database\Connection\PdoConnection;
+use Dirthara\Database\Exception\QueryException;
 use Dirthara\Database\Connection\Driver\DriverName;
-use Dirthara\Database\Connection\Exceptions\QueryException;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
 
 use function getenv;
