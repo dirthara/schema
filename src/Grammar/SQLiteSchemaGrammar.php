@@ -15,9 +15,12 @@ use Dirthara\Schema\Constraint\UniqueConstraint;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Schema\Exceptions\InvalidSchemaException;
 use Dirthara\Schema\Exceptions\UnsupportedDriverException;
+use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
 
 use function count;
 use function sprintf;
+use function in_array;
+use function array_map;
 use function str_replace;
 
 class SQLiteSchemaGrammar extends SqlSchemaGrammar
@@ -38,6 +41,41 @@ class SQLiteSchemaGrammar extends SqlSchemaGrammar
         ]);
     }
 
+    /**
+     * @throws InvalidSchemaException
+     */
+    public function compileTables(): CompiledSchema
+    {
+        return new CompiledSchema([
+            sprintf(
+                'SELECT "m"."name" AS "name", "f"."foreign_keys" AS "foreign_keys" '
+                . 'FROM "main"."sqlite_master" AS "m", pragma_foreign_keys AS "f" '
+                . 'WHERE "m"."type" = %s AND "m"."name" NOT LIKE %s ESCAPE %s ORDER BY "m"."rowid"',
+                $this->literal('table'),
+                $this->literal('sqlite\\_%'),
+                $this->literal('\\'),
+            ),
+        ]);
+    }
+
+    /**
+     * @throws SchemaIntrospectionException
+     */
+    public function compileDropAll(array $tables): CompiledSchema
+    {
+        $drops = array_map(
+            fn(array $table): string => 'DROP TABLE IF EXISTS "main".'
+            . $this->quote($this->introspected($table, 'name')),
+            $tables,
+        );
+
+        if (!in_array($tables[0]['foreign_keys'] ?? null, [1, '1'], strict: true)) {
+            return new CompiledSchema($drops);
+        }
+
+        return new CompiledSchema(['PRAGMA foreign_keys = OFF', ...$drops], ['PRAGMA foreign_keys = ON']);
+    }
+
     protected function driver(): DriverName
     {
         return DriverName::SQLite;
@@ -45,7 +83,12 @@ class SQLiteSchemaGrammar extends SqlSchemaGrammar
 
     protected function wrap(Identifier $identifier): string
     {
-        return '"' . str_replace('"', '""', $identifier->name) . '"';
+        return $this->quote($identifier->name);
+    }
+
+    protected function quote(string $name): string
+    {
+        return '"' . str_replace('"', '""', $name) . '"';
     }
 
     protected function type(Column $column): string

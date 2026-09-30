@@ -456,4 +456,70 @@ final class SQLiteSchemaGrammarTest extends TestCase
 
         $this->create($table);
     }
+
+    #[Test]
+    public function it_lists_the_tables_of_the_main_database_without_its_internal_ones(): void
+    {
+        self::assertSame(
+            [
+                'SELECT "m"."name" AS "name", "f"."foreign_keys" AS "foreign_keys" '
+                    . 'FROM "main"."sqlite_master" AS "m", pragma_foreign_keys AS "f" '
+                    . 'WHERE "m"."type" = \'table\' AND "m"."name" NOT LIKE \'sqlite\\_%\' ESCAPE \'\\\' '
+                    . 'ORDER BY "m"."rowid"',
+            ],
+            $this->grammar->compileTables()->queries,
+        );
+    }
+
+    #[Test]
+    public function it_drops_each_table_from_the_main_database(): void
+    {
+        $compiled = $this->grammar->compileDropAll([
+            ['name' => 'users', 'foreign_keys' => 0],
+            ['name' => 'posts', 'foreign_keys' => 0],
+        ]);
+
+        self::assertSame(
+            ['DROP TABLE IF EXISTS "main"."users"', 'DROP TABLE IF EXISTS "main"."posts"'],
+            $compiled->queries,
+        );
+        self::assertSame([], $compiled->cleanup);
+    }
+
+    /**
+     * @return iterable<string, array{int|string}>
+     */
+    public static function enforcedForeignKeys(): iterable
+    {
+        yield 'integer' => [1];
+        yield 'string' => ['1'];
+    }
+
+    #[Test]
+    #[DataProvider('enforcedForeignKeys')]
+    public function it_suspends_foreign_key_enforcement_that_was_on_and_restores_it(int|string $enforced): void
+    {
+        $compiled = $this->grammar->compileDropAll([['name' => 'users', 'foreign_keys' => $enforced]]);
+
+        self::assertSame(['PRAGMA foreign_keys = OFF', 'DROP TABLE IF EXISTS "main"."users"'], $compiled->queries);
+        self::assertSame(['PRAGMA foreign_keys = ON'], $compiled->cleanup);
+    }
+
+    #[Test]
+    public function it_leaves_foreign_key_enforcement_alone_when_it_is_not_reported(): void
+    {
+        self::assertSame(
+            ['DROP TABLE IF EXISTS "main"."users"'],
+            $this->grammar->compileDropAll([['name' => 'users']])->queries,
+        );
+    }
+
+    #[Test]
+    public function it_quotes_an_introspected_name_it_would_not_accept_as_an_identifier(): void
+    {
+        self::assertSame(
+            ['DROP TABLE IF EXISTS "main"."odd""name"'],
+            $this->grammar->compileDropAll([['name' => 'odd"name', 'foreign_keys' => 0]])->queries,
+        );
+    }
 }

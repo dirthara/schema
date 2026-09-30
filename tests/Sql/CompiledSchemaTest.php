@@ -28,4 +28,19 @@ final class CompiledSchemaTest extends TestCase
 
         self::assertSame(['CREATE TABLE users (id INTEGER)', 'CREATE INDEX users_id ON users (id)'], $schema->queries);
     }
+
+    #[Test]
+    public function it_has_no_cleanup_unless_given_one(): void
+    {
+        self::assertSame([], new CompiledSchema(['DROP TABLE users'])->cleanup);
+    }
+
+    #[Test]
+    public function it_carries_the_cleanup_it_was_built_with(): void
+    {
+        self::assertSame(
+            ['PRAGMA foreign_keys = ON'],
+            new CompiledSchema(['PRAGMA foreign_keys = OFF'], ['PRAGMA foreign_keys = ON'])->cleanup,
+        );
+    }
 }

@@ -122,6 +122,18 @@ final readonly class Schema
      * @throws SchemaConnectionException
      * @throws UnsupportedDriverException
      * @throws SchemaIntrospectionException
+     * @throws SchemaExecutionException
+     * @throws InvalidSchemaException
+     */
+    public function dropAll(?string $connection = null): void
+    {
+        $this->using($connection)->dropAll();
+    }
+
+    /**
+     * @throws SchemaConnectionException
+     * @throws UnsupportedDriverException
+     * @throws SchemaIntrospectionException
      */
     public function hasTable(string $table, ?string $connection = null): bool
     {

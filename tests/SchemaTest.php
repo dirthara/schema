@@ -10,6 +10,7 @@ use Dirthara\Database\Database;
 use PHPUnit\Framework\TestCase;
 use Dirthara\Schema\ConnectedSchema;
 use PHPUnit\Framework\Attributes\Test;
+use Dirthara\Schema\Grammar\SQLiteSchemaGrammar;
 use Dirthara\Schema\Grammar\SchemaGrammarResolver;
 use Dirthara\Database\Connection\ConnectionFactory;
 use Dirthara\Database\Connection\ConnectionManager;
@@ -188,5 +189,95 @@ final class SchemaTest extends TestCase
         } catch (SchemaExecutionException $exception) {
             self::assertSame('reporting', $exception->getContext()['connection']);
         }
+    }
+
+    #[Test]
+    public function it_delegates_a_drop_all(): void
+    {
+        $this->schema()->dropAll();
+
+        self::assertSame(['compileTables', 'compileDropAll'], $this->grammar->methods());
+    }
+
+    #[Test]
+    public function it_drops_every_table_on_the_default_connection(): void
+    {
+        $database = $this->database($this->config('default'), $this->config('reporting'));
+        $schema = $this->schema($database, new SchemaGrammarResolver([
+            DriverName::SQLite->value => new SQLiteSchemaGrammar(),
+        ]));
+
+        $schema->create('users', static function (Table $table): void {
+            $table->id();
+        });
+        $schema->create(
+            'users',
+            static function (Table $table): void {
+                $table->id();
+            },
+            'reporting',
+        );
+
+        $schema->dropAll();
+
+        self::assertFalse($schema->hasTable('users'));
+        self::assertTrue($schema->hasTable('users', 'reporting'));
+    }
+
+    #[Test]
+    public function it_drops_every_table_on_the_named_connection_only(): void
+    {
+        $database = $this->database($this->config('default'), $this->config('reporting'));
+        $schema = $this->schema($database, new SchemaGrammarResolver([
+            DriverName::SQLite->value => new SQLiteSchemaGrammar(),
+        ]));
+
+        $schema->create('users', static function (Table $table): void {
+            $table->id();
+        });
+        $schema->create(
+            'audits',
+            static function (Table $table): void {
+                $table->id();
+            },
+            'reporting',
+        );
+        $schema->create(
+            'reports',
+            static function (Table $table): void {
+                $table->id();
+            },
+            'reporting',
+        );
+
+        $schema->dropAll('reporting');
+
+        self::assertFalse($schema->hasTable('audits', 'reporting'));
+        self::assertFalse($schema->hasTable('reports', 'reporting'));
+        self::assertTrue($schema->hasTable('users'));
+    }
+
+    #[Test]
+    public function it_identifies_the_named_connection_when_a_drop_all_fails(): void
+    {
+        $this->grammar->queries = ['NOT SQL'];
+
+        $schema = $this->schema($this->database($this->config('default'), $this->config('reporting')));
+
+        try {
+            $schema->dropAll('reporting');
+            self::fail('The failing drop was not reported.');
+        } catch (SchemaExecutionException $exception) {
+            self::assertSame('reporting', $exception->getContext()['connection']);
+            self::assertSame('drop_all', $exception->getContext()['operation']);
+        }
+    }
+
+    #[Test]
+    public function it_reports_an_unconfigured_connection_for_a_drop_all(): void
+    {
+        $this->expectException(SchemaConnectionException::class);
+
+        $this->schema()->dropAll('missing');
     }
 }

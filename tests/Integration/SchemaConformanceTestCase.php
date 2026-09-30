@@ -24,6 +24,8 @@ abstract class SchemaConformanceTestCase extends TestCase
 {
     protected const string TABLE = 'conformance_users';
 
+    protected const string NEIGHBOURHOOD = 'conformance_neighbour';
+
     protected Connection $connection;
 
     protected ConnectedSchema $schema;
@@ -36,6 +38,10 @@ abstract class SchemaConformanceTestCase extends TestCase
 
     abstract protected function config(): ConnectionConfig;
 
+    abstract protected function neighbour(): Connection;
+
+    protected function prepareDatabase(): void {}
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -44,16 +50,17 @@ abstract class SchemaConformanceTestCase extends TestCase
             self::markTestSkipped(sprintf('The %s PDO driver is not installed.', $this->driverName()->value));
         }
 
+        $this->prepareDatabase();
+
         $this->connection = new PdoConnection($this->config(), $this->driver());
         $this->schema = new ConnectedSchema($this->connection, $this->grammar());
 
-        $this->schema->dropIfExists(self::TABLE);
+        $this->schema->dropAll();
     }
 
     protected function tearDown(): void
     {
-        $this->schema->dropIfExists(self::TABLE);
-        $this->schema->dropIfExists('conformance_renamed');
+        $this->schema->dropAll();
 
         parent::tearDown();
     }
@@ -84,6 +91,52 @@ abstract class SchemaConformanceTestCase extends TestCase
         $row = $this->connection->execute(sprintf('SELECT COUNT(*) AS total FROM %s', self::TABLE))->first();
 
         return (int) ($row['total'] ?? $row['TOTAL'] ?? 0);
+    }
+
+    protected function createBlog(): void
+    {
+        $this->createUsers();
+
+        $this->schema->create('conformance_posts', static function (Table $table): void {
+            $table->id();
+            $table->bigInteger('user_id')->unsigned();
+            $table->foreign('user_id')->references('id')->on(self::TABLE);
+        });
+
+        $this->schema->create('conformance_comments', static function (Table $table): void {
+            $table->id();
+            $table->bigInteger('post_id')->unsigned();
+            $table->foreign('post_id')->references('id')->on('conformance_posts');
+        });
+
+        $this->insert('email', "'ada@example.com'");
+        $this->connection->execute(sprintf('INSERT INTO conformance_posts (user_id) SELECT id FROM %s', self::TABLE));
+        $this->connection->execute('INSERT INTO conformance_comments (post_id) SELECT id FROM conformance_posts');
+    }
+
+    protected function createCycle(): void
+    {
+        $this->schema->create('conformance_left', static function (Table $table): void {
+            $table->id();
+            $table->bigInteger('right_id')->unsigned()->nullable();
+        });
+
+        $this->schema->create('conformance_right', static function (Table $table): void {
+            $table->id();
+            $table->bigInteger('left_id')->unsigned()->nullable();
+            $table->foreign('left_id')->references('id')->on('conformance_left');
+        });
+
+        $this->schema->table('conformance_left', static function (Table $table): void {
+            $table->foreign('right_id')->references('id')->on('conformance_right');
+        });
+    }
+
+    protected function assertNoTables(string ...$tables): void
+    {
+        foreach ($tables as $table) {
+            self::assertFalse($this->schema->hasTable($table), sprintf('The table [%s] survived.', $table));
+        }
     }
 
     #[Test]
@@ -329,5 +382,81 @@ abstract class SchemaConformanceTestCase extends TestCase
 
         self::assertCount(2, $rows);
         self::assertNotSame($rows[0]['id'], $rows[1]['id']);
+    }
+
+    #[Test]
+    public function it_drops_every_table(): void
+    {
+        $this->createUsers();
+        $this->schema->create('conformance_teams', static function (Table $table): void {
+            $table->id();
+            $table->string('name', 120);
+        });
+        $this->connection->execute('CREATE TABLE conformance_legacy (id INT)');
+
+        $this->schema->dropAll();
+
+        $this->assertNoTables(self::TABLE, 'conformance_teams', 'conformance_legacy');
+    }
+
+    #[Test]
+    public function it_drops_tables_linked_by_foreign_keys(): void
+    {
+        $this->createBlog();
+
+        $this->schema->dropAll();
+
+        $this->assertNoTables(self::TABLE, 'conformance_posts', 'conformance_comments');
+    }
+
+    #[Test]
+    public function it_drops_tables_that_reference_each_other(): void
+    {
+        $this->createCycle();
+
+        $this->schema->dropAll();
+
+        $this->assertNoTables('conformance_left', 'conformance_right');
+    }
+
+    #[Test]
+    public function it_drops_nothing_when_there_are_no_tables(): void
+    {
+        $this->schema->dropAll();
+        $this->schema->dropAll();
+
+        $this->assertNoTables(self::TABLE);
+    }
+
+    #[Test]
+    public function it_can_create_the_same_tables_again_afterwards(): void
+    {
+        $this->createBlog();
+
+        $this->schema->dropAll();
+        $this->createBlog();
+
+        self::assertTrue($this->schema->hasTable('conformance_comments'));
+        self::assertSame(1, $this->rowCount());
+    }
+
+    #[Test]
+    public function it_leaves_a_table_outside_the_connection_alone(): void
+    {
+        $neighbour = $this->neighbour();
+        $kept = self::NEIGHBOURHOOD . '.' . self::TABLE;
+
+        $neighbour->execute(sprintf('CREATE TABLE %s (id INT)', $kept));
+
+        try {
+            $this->createUsers();
+
+            $this->schema->dropAll();
+
+            $this->assertNoTables(self::TABLE);
+            self::assertSame([], $neighbour->execute(sprintf('SELECT id FROM %s', $kept))->all());
+        } finally {
+            $neighbour->execute(sprintf('DROP TABLE %s', $kept));
+        }
     }
 }

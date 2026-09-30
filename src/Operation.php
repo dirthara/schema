@@ -12,5 +12,6 @@ enum Operation: string
     case Drop = 'drop';
     case DropIfExists = 'drop_if_exists';
     case Rename = 'rename';
+    case DropAll = 'drop_all';
     case HasTable = 'has_table';
 }

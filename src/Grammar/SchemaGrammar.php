@@ -18,4 +18,11 @@ interface SchemaGrammar
     public function compileRename(string $from, string $to): CompiledSchema;
 
     public function compileHasTable(string $table): CompiledSchema;
+
+    public function compileTables(): CompiledSchema;
+
+    /**
+     * @param non-empty-list<array<string, mixed>> $tables
+     */
+    public function compileDropAll(array $tables): CompiledSchema;
 }

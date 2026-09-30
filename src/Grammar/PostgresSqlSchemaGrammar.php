@@ -11,9 +11,11 @@ use Dirthara\Schema\Column\ColumnType;
 use Dirthara\Schema\Sql\CompiledSchema;
 use Dirthara\Schema\Constraint\PrimaryKey;
 use Dirthara\Database\Connection\Driver\DriverName;
+use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
 
 use function implode;
 use function sprintf;
+use function array_map;
 use function str_replace;
 
 class PostgresSqlSchemaGrammar extends SqlSchemaGrammar
@@ -29,6 +31,40 @@ class PostgresSqlSchemaGrammar extends SqlSchemaGrammar
         ]);
     }
 
+    public function compileTables(): CompiledSchema
+    {
+        return new CompiledSchema([
+            sprintf(
+                'SELECT "n"."nspname" AS "schema", "c"."relname" AS "name" FROM "pg_catalog"."pg_class" AS "c" '
+                . 'INNER JOIN "pg_catalog"."pg_namespace" AS "n" ON "n"."oid" = "c"."relnamespace" '
+                . 'WHERE "n"."nspname" = CURRENT_SCHEMA() AND "c"."relkind" IN (%s, %s) AND NOT EXISTS ('
+                . 'SELECT 1 FROM "pg_catalog"."pg_depend" AS "d" WHERE "d"."classid" = %s::regclass '
+                . 'AND "d"."objid" = "c"."oid" AND "d"."deptype" = %s) ORDER BY "c"."relname"',
+                $this->literal('r'),
+                $this->literal('p'),
+                $this->literal('pg_catalog.pg_class'),
+                $this->literal('e'),
+            ),
+        ]);
+    }
+
+    /**
+     * @throws SchemaIntrospectionException
+     */
+    public function compileDropAll(array $tables): CompiledSchema
+    {
+        return new CompiledSchema([
+            sprintf('DROP TABLE IF EXISTS %s', implode(', ', array_map(
+                fn(array $table): string => (
+                    $this->quote($this->introspected($table, 'schema'))
+                    . '.'
+                    . $this->quote($this->introspected($table, 'name'))
+                ),
+                $tables,
+            ))),
+        ]);
+    }
+
     protected function driver(): DriverName
     {
         return DriverName::PostgresSql;
@@ -36,7 +72,12 @@ class PostgresSqlSchemaGrammar extends SqlSchemaGrammar
 
     protected function wrap(Identifier $identifier): string
     {
-        return '"' . str_replace('"', '""', $identifier->name) . '"';
+        return $this->quote($identifier->name);
+    }
+
+    protected function quote(string $name): string
+    {
+        return '"' . str_replace('"', '""', $name) . '"';
     }
 
     protected function type(Column $column): string

@@ -22,6 +22,16 @@ final class StandardSchemaGrammar extends SqlSchemaGrammar
         return new CompiledSchema([sprintf('SELECT %s', $this->literal($this->identifier($table)->name))]);
     }
 
+    public function compileTables(): CompiledSchema
+    {
+        return new CompiledSchema(['SELECT 42 AS name']);
+    }
+
+    public function compileDropAll(array $tables): CompiledSchema
+    {
+        return new CompiledSchema([sprintf('DROP %s', $this->introspected($tables[0], 'name'))]);
+    }
+
     public function compileConstraint(Constraint $constraint): string
     {
         return $this->constraint($constraint);

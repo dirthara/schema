@@ -26,6 +26,7 @@ use Dirthara\Schema\Constraint\ReferentialAction;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Schema\Exceptions\InvalidSchemaException;
 use Dirthara\Schema\Exceptions\UnsupportedDriverException;
+use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
 use Dirthara\Schema\Exceptions\InvalidTableDefinitionException;
 
 use function is_int;
@@ -403,6 +404,23 @@ abstract class SqlSchemaGrammar implements SchemaGrammar
     protected function identifier(string $name): Identifier
     {
         return new Identifier($name);
+    }
+
+    /**
+     * @param array<string, mixed> $row
+     *
+     * @throws SchemaIntrospectionException
+     */
+    protected function introspected(array $row, string $column): string
+    {
+        if (!is_string($row[$column] ?? null) || $row[$column] === '') {
+            throw new SchemaIntrospectionException(
+                sprintf('The introspected table has no usable [%s].', $column),
+                context: ['driver' => $this->driver()->value, 'column' => $column],
+            );
+        }
+
+        return $row[$column];
     }
 
     protected function unsupported(string $message, Identifier $subject, string $operation): UnsupportedDriverException

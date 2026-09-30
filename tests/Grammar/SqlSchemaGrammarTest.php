@@ -12,6 +12,7 @@ use Dirthara\Schema\Tests\Doubles\UnknownConstraint;
 use Dirthara\Schema\Exceptions\InvalidSchemaException;
 use Dirthara\Schema\Tests\Doubles\StandardSchemaGrammar;
 use Dirthara\Schema\Exceptions\UnsupportedDriverException;
+use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
 
 final class SqlSchemaGrammarTest extends TestCase
 {
@@ -149,5 +150,48 @@ final class SqlSchemaGrammarTest extends TestCase
     public function it_compiles_a_has_table_query(): void
     {
         self::assertSame(["SELECT 'users'"], $this->grammar->compileHasTable('users')->queries);
+    }
+
+    #[Test]
+    public function it_reads_a_name_from_an_introspected_table(): void
+    {
+        self::assertSame(['DROP users'], $this->grammar->compileDropAll([['name' => 'users']])->queries);
+    }
+
+    #[Test]
+    public function it_refuses_an_introspected_table_without_the_column(): void
+    {
+        try {
+            $this->grammar->compileDropAll([['table_name' => 'users']]);
+            self::fail('The unusable table was not reported.');
+        } catch (SchemaIntrospectionException $exception) {
+            self::assertSame('The introspected table has no usable [name].', $exception->getMessage());
+        }
+    }
+
+    #[Test]
+    public function it_refuses_an_introspected_name_that_is_not_a_string(): void
+    {
+        $this->expectException(SchemaIntrospectionException::class);
+
+        $this->grammar->compileDropAll([['name' => 42]]);
+    }
+
+    #[Test]
+    public function it_refuses_an_empty_introspected_name(): void
+    {
+        $this->expectException(SchemaIntrospectionException::class);
+
+        $this->grammar->compileDropAll([['name' => '']]);
+    }
+
+    #[Test]
+    public function it_reports_the_driver_and_column_it_could_not_read(): void
+    {
+        try {
+            $this->grammar->compileDropAll([['name' => null]]);
+        } catch (SchemaIntrospectionException $exception) {
+            self::assertSame(['driver' => 'mysql', 'column' => 'name'], $exception->getContext());
+        }
     }
 }

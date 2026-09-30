@@ -12,6 +12,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Schema\Constraint\ReferentialAction;
 use Dirthara\Schema\Grammar\PostgresSqlSchemaGrammar;
 use Dirthara\Schema\Exceptions\InvalidSchemaException;
+use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
 
 use function sprintf;
 
@@ -355,5 +356,60 @@ final class PostgresSqlSchemaGrammarTest extends TestCase
         $table->dropIndex('users_name_index');
 
         self::assertSame(['DROP INDEX "users_name_index"'], $this->alter($table));
+    }
+
+    #[Test]
+    public function it_lists_the_tables_of_the_current_schema_that_no_extension_owns(): void
+    {
+        self::assertSame(
+            [
+                'SELECT "n"."nspname" AS "schema", "c"."relname" AS "name" FROM "pg_catalog"."pg_class" AS "c" '
+                    . 'INNER JOIN "pg_catalog"."pg_namespace" AS "n" ON "n"."oid" = "c"."relnamespace" '
+                    . 'WHERE "n"."nspname" = CURRENT_SCHEMA() AND "c"."relkind" IN (\'r\', \'p\') AND NOT EXISTS ('
+                    . 'SELECT 1 FROM "pg_catalog"."pg_depend" AS "d" WHERE "d"."classid" = \'pg_catalog.pg_class\'::regclass '
+                    . 'AND "d"."objid" = "c"."oid" AND "d"."deptype" = \'e\') ORDER BY "c"."relname"',
+            ],
+            $this->grammar->compileTables()->queries,
+        );
+    }
+
+    #[Test]
+    public function it_drops_every_table_in_one_statement_qualified_by_its_schema(): void
+    {
+        self::assertSame(
+            ['DROP TABLE IF EXISTS "public"."users", "public"."posts"'],
+            $this->grammar->compileDropAll([
+                ['schema' => 'public', 'name' => 'users'],
+                ['schema' => 'public', 'name' => 'posts'],
+            ])->queries,
+        );
+    }
+
+    #[Test]
+    public function it_does_not_cascade_to_objects_outside_the_tables(): void
+    {
+        $queries = $this->grammar->compileDropAll([['schema' => 'public', 'name' => 'users']])->queries;
+
+        self::assertStringNotContainsString('CASCADE', $queries[0]);
+    }
+
+    #[Test]
+    public function it_quotes_an_introspected_name_it_would_not_accept_as_an_identifier(): void
+    {
+        self::assertSame(
+            ['DROP TABLE IF EXISTS "App Schema"."odd""name"'],
+            $this->grammar->compileDropAll([['schema' => 'App Schema', 'name' => 'odd"name']])->queries,
+        );
+    }
+
+    #[Test]
+    public function it_refuses_an_introspected_table_without_a_schema(): void
+    {
+        try {
+            $this->grammar->compileDropAll([['name' => 'users']]);
+            self::fail('The unusable table was not reported.');
+        } catch (SchemaIntrospectionException $exception) {
+            self::assertSame('The introspected table has no usable [schema].', $exception->getMessage());
+        }
     }
 }

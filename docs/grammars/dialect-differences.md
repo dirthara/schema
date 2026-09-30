@@ -23,6 +23,7 @@ not, and what to expect before you rely on it.
 | Change a column and its default at once | **refused** | yes | yes | **refused** |
 | Add a `NOT NULL` column with no default | **refused** | yes | yes | yes |
 | `unsigned()` | ignored | applied | ignored | ignored |
+| Drop every table, `dropAll()` | yes | yes | yes | yes |
 
 A refusal is an `UnsupportedDriverException` carrying the driver, the operation
 and the subject — never a silently different statement.
@@ -48,6 +49,11 @@ how SQLite stores one anyway. `dropConstraint()` compiles `DROP INDEX` to match.
 - adding a `NOT NULL` column without a default
 - auto-incrementing a column that is not the primary key
 
+**`dropAll()` drops one table at a time from `main`**, qualifying each name so
+that a temporary table with the same name is not dropped in its place. Foreign
+key enforcement is switched off first if it was on, and back on afterwards.
+SQLite's own tables, such as `sqlite_sequence`, are never listed.
+
 SQLite documents a table rebuild for the first two. This package does not do it,
 because a rebuild silently loses the triggers and views attached to the table.
 
@@ -68,6 +74,16 @@ so doubling quotes is not enough on its own.
 
 `AUTO_INCREMENT` sits on the column with the primary key declared after it, and
 `unsigned()` is the one place that modifier does anything.
+
+**`dropAll()` is one `DROP TABLE` naming every base table in `DATABASE()`.**
+MySQL resolves the foreign keys between the tables it is dropping, so
+`FOREIGN_KEY_CHECKS` is never touched.
+
+:::caution
+A `TEMPORARY` table shadows a base table of the same name, and MySQL's
+`DROP TABLE` drops the temporary one first. Do not call `dropAll()` on a
+connection holding temporary tables named like real ones.
+:::
 
 ## PostgreSQL
 
@@ -94,6 +110,14 @@ out with no default.
 `DROP INDEX` takes no `ON` clause; an index is a schema object rather than
 something a table owns.
 
+**`dropAll()` is one `DROP TABLE` naming every table in `CURRENT_SCHEMA()`**,
+each qualified with the schema, and without `CASCADE`. A table an extension owns
+is left out, since dropping it means dropping the extension. Because there is no
+`CASCADE`, a view or another schema's foreign key that depends on one of the
+tables makes the whole statement fail, and nothing is dropped. Dropping and
+recreating the schema instead would lose its owner and grants, so it is never
+done.
+
 ## SQL Server
 
 **`CREATE TABLE IF NOT EXISTS` does not exist**, so a conditional create is
@@ -111,6 +135,17 @@ is no `ALTER TABLE … RENAME`.
 
 **String literals are prefixed with `N`** so a unicode default is not mangled on
 its way into an `NVARCHAR` column.
+
+**`dropAll()` drops the foreign keys before the tables.** SQL Server will not
+drop a table another table still references, even in the same statement, so
+each foreign key declared on the tables in `SCHEMA_ID()` is removed with
+`ALTER TABLE … DROP CONSTRAINT` first. Tables the server ships are left out.
+
+:::caution
+A system-versioned temporal table, or a view created `WITH SCHEMABINDING`, stops
+`dropAll()` with a `SchemaExecutionException`. Neither is something this package
+creates or turns off on your behalf.
+:::
 
 **A column and its default cannot change together.** SQL Server keeps a default
 in its own auto-named constraint, so altering both would mean discovering that

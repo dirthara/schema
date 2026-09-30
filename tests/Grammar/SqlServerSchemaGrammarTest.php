@@ -13,6 +13,7 @@ use Dirthara\Schema\Constraint\ReferentialAction;
 use Dirthara\Schema\Grammar\SqlServerSchemaGrammar;
 use Dirthara\Schema\Exceptions\InvalidSchemaException;
 use Dirthara\Schema\Exceptions\UnsupportedDriverException;
+use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
 
 use function sprintf;
 
@@ -345,5 +346,74 @@ final class SqlServerSchemaGrammarTest extends TestCase
         $table->dropIndex('users_name_index');
 
         self::assertSame(['DROP INDEX [users_name_index] ON [users]'], $this->alter($table));
+    }
+
+    #[Test]
+    public function it_lists_the_user_tables_of_the_default_schema_with_their_foreign_keys(): void
+    {
+        self::assertSame(
+            [
+                'SELECT SCHEMA_NAME([t].[schema_id]) AS [schema], [t].[name] AS [name], [fk].[name] AS [foreign_key] '
+                    . 'FROM [sys].[tables] AS [t] '
+                    . 'LEFT JOIN [sys].[foreign_keys] AS [fk] ON [fk].[parent_object_id] = [t].[object_id] '
+                    . 'WHERE [t].[schema_id] = SCHEMA_ID() AND [t].[is_ms_shipped] = 0 '
+                    . 'ORDER BY [t].[name], [fk].[name]',
+            ],
+            $this->grammar->compileTables()->queries,
+        );
+    }
+
+    #[Test]
+    public function it_drops_the_foreign_keys_before_the_tables(): void
+    {
+        self::assertSame(
+            [
+                'ALTER TABLE [dbo].[comments] DROP CONSTRAINT [comments_post_id_foreign]',
+                'ALTER TABLE [dbo].[comments] DROP CONSTRAINT [comments_user_id_foreign]',
+                'ALTER TABLE [dbo].[posts] DROP CONSTRAINT [posts_user_id_foreign]',
+                'DROP TABLE IF EXISTS [dbo].[comments]',
+                'DROP TABLE IF EXISTS [dbo].[posts]',
+                'DROP TABLE IF EXISTS [dbo].[users]',
+            ],
+            $this->grammar->compileDropAll([
+                ['schema' => 'dbo', 'name' => 'comments', 'foreign_key' => 'comments_post_id_foreign'],
+                ['schema' => 'dbo', 'name' => 'comments', 'foreign_key' => 'comments_user_id_foreign'],
+                ['schema' => 'dbo', 'name' => 'posts', 'foreign_key' => 'posts_user_id_foreign'],
+                ['schema' => 'dbo', 'name' => 'users', 'foreign_key' => null],
+            ])->queries,
+        );
+    }
+
+    #[Test]
+    public function it_drops_a_table_without_foreign_keys_on_its_own(): void
+    {
+        self::assertSame(
+            ['DROP TABLE IF EXISTS [dbo].[users]'],
+            $this->grammar->compileDropAll([['schema' => 'dbo', 'name' => 'users']])->queries,
+        );
+    }
+
+    #[Test]
+    public function it_quotes_an_introspected_name_it_would_not_accept_as_an_identifier(): void
+    {
+        self::assertSame(
+            ['ALTER TABLE [app].[odd]]name] DROP CONSTRAINT [fk]]x]', 'DROP TABLE IF EXISTS [app].[odd]]name]'],
+            $this->grammar->compileDropAll([[
+                'schema' => 'app',
+                'name' => 'odd]name',
+                'foreign_key' => 'fk]x',
+            ]])->queries,
+        );
+    }
+
+    #[Test]
+    public function it_refuses_an_introspected_foreign_key_that_is_not_a_name(): void
+    {
+        try {
+            $this->grammar->compileDropAll([['schema' => 'dbo', 'name' => 'users', 'foreign_key' => 7]]);
+            self::fail('The unusable table was not reported.');
+        } catch (SchemaIntrospectionException $exception) {
+            self::assertSame('The introspected table has no usable [foreign_key].', $exception->getMessage());
+        }
     }
 }

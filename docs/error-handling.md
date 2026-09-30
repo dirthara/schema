@@ -29,7 +29,7 @@ SchemaException
 | `UnsupportedDriverException` | This database cannot do what was asked, or no grammar is registered for the driver. |
 | `SchemaConnectionException` | The connection could not be resolved or reached. |
 | `SchemaExecutionException` | The server rejected a schema statement. |
-| `SchemaIntrospectionException` | The server rejected an introspection query, such as the one behind `hasTable()`. |
+| `SchemaIntrospectionException` | The server rejected an introspection query, such as the one behind `hasTable()` or `dropAll()`, or returned a table the grammar could not read. |
 
 The first three are raised before anything is sent, so a definition that cannot
 compile never touches the database.
@@ -65,6 +65,10 @@ throw $exception->addContext(['migration' => $migration::class]);
 | --- | --- |
 | A failed statement | `connection`, `driver`, `operation`, `table`, `query` |
 | A failed rename | the above, plus `to` |
+| A failed `dropAll()` statement | `connection`, `driver`, `operation`, `tables`, `query` |
+| A `dropAll()` whose cleanup also failed | the above, plus `cleanup_query` |
+| A failed table listing for `dropAll()` | `connection`, `driver`, `operation`, `query` |
+| A listed table the grammar could not read | `driver`, `column`, `connection`, `operation`, `tables` |
 | An invalid name | `identifier`, and `table` when it was declared on one |
 | An invalid length or precision | `column`, plus `length`, `precision` or `scale` |
 | A duplicate column | `table`, `column` |
@@ -75,8 +79,18 @@ throw $exception->addContext(['migration' => $migration::class]);
 | An unregistered driver | `driver` |
 
 `operation` is the value of an `Operation` case: `create`,
-`create_if_not_exists`, `alter`, `drop`, `drop_if_exists`, `rename` or
-`has_table`.
+`create_if_not_exists`, `alter`, `drop`, `drop_if_exists`, `rename`, `drop_all`
+or `has_table`.
+
+`dropAll()` works on many tables at once, so its context carries `tables` — the
+names it was about to drop — rather than a single `table`. The failing statement
+in `query` says which one the server refused.
+
+When a `dropAll()` statement fails and the statement that restores a setting
+afterwards fails too, the exception thrown is the one for the drop, because that
+is what went wrong first. `cleanup_query` in its context says which restoring
+statement also failed, so you know the connection may be left with that setting
+changed.
 
 :::danger
 Context is written to logs. It never carries a username, a password or a

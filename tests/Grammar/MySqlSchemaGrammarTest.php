@@ -330,4 +330,40 @@ final class MySqlSchemaGrammarTest extends TestCase
 
         self::assertSame(['DROP INDEX `users_name_index` ON `users`'], $this->alter($table));
     }
+
+    #[Test]
+    public function it_lists_the_base_tables_of_the_current_database(): void
+    {
+        self::assertSame(
+            [
+                'SELECT `TABLE_NAME` AS `name` FROM `information_schema`.`TABLES` '
+                    . "WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_TYPE` = 'BASE TABLE' ORDER BY `TABLE_NAME`",
+            ],
+            $this->grammar->compileTables()->queries,
+        );
+    }
+
+    #[Test]
+    public function it_drops_every_table_in_one_statement(): void
+    {
+        self::assertSame(
+            ['DROP TABLE IF EXISTS `users`, `posts`, `comments`'],
+            $this->grammar->compileDropAll([['name' => 'users'], ['name' => 'posts'], ['name' => 'comments']])->queries,
+        );
+    }
+
+    #[Test]
+    public function it_quotes_an_introspected_name_it_would_not_accept_as_an_identifier(): void
+    {
+        self::assertSame(
+            ['DROP TABLE IF EXISTS `legacy-table`, `odd``name`'],
+            $this->grammar->compileDropAll([['name' => 'legacy-table'], ['name' => 'odd`name']])->queries,
+        );
+    }
+
+    #[Test]
+    public function it_changes_no_setting_to_drop_every_table(): void
+    {
+        self::assertSame([], $this->grammar->compileDropAll([['name' => 'users']])->cleanup);
+    }
 }

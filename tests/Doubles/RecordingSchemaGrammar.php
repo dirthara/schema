@@ -9,6 +9,9 @@ use Dirthara\Schema\Table;
 use Dirthara\Schema\Sql\CompiledSchema;
 use Dirthara\Schema\Grammar\SchemaGrammar;
 
+use function count;
+use function is_string;
+
 final class RecordingSchemaGrammar implements SchemaGrammar
 {
     /**
@@ -18,9 +21,13 @@ final class RecordingSchemaGrammar implements SchemaGrammar
 
     /**
      * @param list<string> $queries
+     * @param list<string> $tableQueries
+     * @param list<string> $cleanup
      */
     public function __construct(
         public array $queries = ['SELECT 1'],
+        public array $tableQueries = ["SELECT 'users' AS name"],
+        public array $cleanup = [],
     ) {}
 
     public function compileCreate(Table $definition, bool $ifNotExists): CompiledSchema
@@ -55,6 +62,34 @@ final class RecordingSchemaGrammar implements SchemaGrammar
     public function compileHasTable(string $table): CompiledSchema
     {
         return $this->record(['method' => 'compileHasTable', 'table' => $table]);
+    }
+
+    public function compileTables(): CompiledSchema
+    {
+        $this->calls[] = ['method' => 'compileTables'];
+
+        return new CompiledSchema($this->tableQueries);
+    }
+
+    public function compileDropAll(array $tables): CompiledSchema
+    {
+        $this->calls[] = ['method' => 'compileDropAll', 'tables' => $tables];
+
+        return new CompiledSchema($this->queries, $this->cleanup);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function methods(): array
+    {
+        $methods = [];
+
+        foreach ($this->calls as $call) {
+            $methods[] = is_string($call['method'] ?? null) ? $call['method'] : '';
+        }
+
+        return $methods;
     }
 
     /**
