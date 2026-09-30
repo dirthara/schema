@@ -7,7 +7,7 @@ no backports to earlier ones.
 
 | Version | Supported |
 | --- | --- |
-| 0.1.x | Yes |
+| 0.3.x | Yes |
 | Older | No |
 
 ## Reporting a vulnerability
@@ -51,6 +51,9 @@ including:
   database.
 - Credentials or definition values appearing in exception messages, exception
   context, dumps, or stack traces.
+- `dropAll()` dropping anything outside its documented scope: a table in
+  another database or schema, a database's own internal tables, or an object
+  that is not a table.
 
 Out of scope:
 
@@ -61,6 +64,8 @@ Out of scope:
   the package can defend against one, that is worth reporting here too.
 - A migration an application chooses to run against production, and whatever it
   drops. The package compiles what it is told to compile.
+- The tables `dropAll()` removes from the connection it was called on. Removing
+  every user table there is what it is for.
 - A database misconfiguration the package faithfully connected to, such as an
   account with more privileges than it needs.
 
@@ -73,6 +78,11 @@ required: a pattern alone does not survive a new database's quoting rules, and
 quoting alone does not stop an identifier that is valid text but wrong. A
 compiler of your own should use the package's quoting helpers rather than
 concatenating identifiers into SQL directly.
+
+The one name that is quoted without being validated is a table name `dropAll()`
+reads back from the server. That table already exists, so it cannot be refused,
+and it need not match the pattern. It is still quoted for the target database,
+so a name containing the quote character cannot close the quote.
 
 Exception context is written to logs. It carries the connection name, driver,
 operation, SQLSTATE, and the SQL — never a username, a password, or a

@@ -17,7 +17,7 @@ composer require dirthara/schema
 | --- | --- |
 | PHP 8.5 | The package uses asymmetric property visibility and interface properties. |
 | `ext-pdo` | Statements are executed through the connection from `dirthara/database`. |
-| `dirthara/database` `^0.1` | Owns the connections, drivers and PDO handling this package compiles for. |
+| `dirthara/database` `^0.2` | Owns the connections, drivers and PDO handling this package compiles for. |
 
 Each database also needs its own PDO extension. Install only the ones you use:
 
