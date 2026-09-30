@@ -28,6 +28,13 @@ Each database also needs its own PDO extension. Install only the ones you use:
 | SQLite | `pdo_sqlite` |
 | SQL Server | `pdo_sqlsrv` |
 
+:::caution
+MySQL 8.4 is the supported baseline, and the version the integration suite runs
+against. Earlier MySQL releases are not supported: the compiled DDL, including
+the single `DROP TABLE` that [`dropAll()`](schema.md#dropping-every-table)
+issues, relies on how 8.4 behaves.
+:::
+
 ## Wiring it up
 
 A `Schema` needs two things: the `Database` it should run statements on, and a
