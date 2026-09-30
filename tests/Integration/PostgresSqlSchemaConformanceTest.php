@@ -12,7 +12,7 @@ use Dirthara\Database\Connection\Connection;
 use Dirthara\Database\Connection\Driver\Driver;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Schema\Grammar\PostgresSqlSchemaGrammar;
-use Dirthara\Schema\Exceptions\SchemaExecutionException;
+use Dirthara\Schema\Exception\SchemaExecutionException;
 use Dirthara\Database\Connection\Driver\PostgresSqlDriver;
 use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
@@ -119,7 +119,7 @@ final class PostgresSqlSchemaConformanceTest extends SchemaConformanceTestCase
             $this->schema->dropAll();
             self::fail('Dropping a table a view depends on was not reported.');
         } catch (SchemaExecutionException $exception) {
-            self::assertSame('drop_all', $exception->getContext()['operation']);
+            self::assertSame('drop_all', $exception->context['operation']);
             self::assertTrue($this->schema->hasTable(self::TABLE));
             self::assertTrue($this->schema->hasTable('conformance_teams'));
         } finally {

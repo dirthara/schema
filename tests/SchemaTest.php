@@ -17,11 +17,11 @@ use Dirthara\Database\Connection\ConnectionManager;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Database\Exception\ConnectionException;
 use Dirthara\Database\Connection\Driver\SQLiteDriver;
-use Dirthara\Schema\Exceptions\SchemaExecutionException;
+use Dirthara\Schema\Exception\SchemaExecutionException;
+use Dirthara\Schema\Exception\SchemaConnectionException;
 use Dirthara\Database\Query\Grammar\QueryGrammarResolver;
-use Dirthara\Schema\Exceptions\SchemaConnectionException;
+use Dirthara\Schema\Exception\UnsupportedDriverException;
 use Dirthara\Schema\Tests\Doubles\RecordingSchemaGrammar;
-use Dirthara\Schema\Exceptions\UnsupportedDriverException;
 use Dirthara\Database\Exception\ConnectionRegistryException;
 use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
@@ -187,7 +187,7 @@ final class SchemaTest extends TestCase
         try {
             $schema->drop('users', 'reporting');
         } catch (SchemaExecutionException $exception) {
-            self::assertSame('reporting', $exception->getContext()['connection']);
+            self::assertSame('reporting', $exception->context['connection']);
         }
     }
 
@@ -268,8 +268,8 @@ final class SchemaTest extends TestCase
             $schema->dropAll('reporting');
             self::fail('The failing drop was not reported.');
         } catch (SchemaExecutionException $exception) {
-            self::assertSame('reporting', $exception->getContext()['connection']);
-            self::assertSame('drop_all', $exception->getContext()['operation']);
+            self::assertSame('reporting', $exception->context['connection']);
+            self::assertSame('drop_all', $exception->context['operation']);
         }
     }
 

@@ -8,12 +8,12 @@ use Closure;
 use Dirthara\Database\Database;
 use Dirthara\Database\Exception\DatabaseException;
 use Dirthara\Schema\Grammar\SchemaGrammarResolver;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
-use Dirthara\Schema\Exceptions\SchemaExecutionException;
-use Dirthara\Schema\Exceptions\SchemaConnectionException;
-use Dirthara\Schema\Exceptions\UnsupportedDriverException;
-use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
-use Dirthara\Schema\Exceptions\InvalidTableDefinitionException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
+use Dirthara\Schema\Exception\SchemaExecutionException;
+use Dirthara\Schema\Exception\SchemaConnectionException;
+use Dirthara\Schema\Exception\UnsupportedDriverException;
+use Dirthara\Schema\Exception\SchemaIntrospectionException;
+use Dirthara\Schema\Exception\InvalidTableDefinitionException;
 
 final readonly class Schema
 {
@@ -31,7 +31,7 @@ final readonly class Schema
         try {
             $databaseConnection = $this->database->connection($connection);
         } catch (DatabaseException $exception) {
-            throw SchemaConnectionException::fromDatabaseException($exception);
+            throw SchemaConnectionException::unavailable($exception);
         }
 
         return new ConnectedSchema(

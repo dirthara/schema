@@ -9,7 +9,7 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Schema\Constraint\ForeignKey;
 use Dirthara\Schema\Constraint\ReferentialAction;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
 
 final class ForeignKeyTest extends TestCase
 {

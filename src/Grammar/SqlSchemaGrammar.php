@@ -24,10 +24,10 @@ use Dirthara\Schema\Constraint\PrimaryKey;
 use Dirthara\Schema\Constraint\UniqueConstraint;
 use Dirthara\Schema\Constraint\ReferentialAction;
 use Dirthara\Database\Connection\Driver\DriverName;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
-use Dirthara\Schema\Exceptions\UnsupportedDriverException;
-use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
-use Dirthara\Schema\Exceptions\InvalidTableDefinitionException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
+use Dirthara\Schema\Exception\UnsupportedDriverException;
+use Dirthara\Schema\Exception\SchemaIntrospectionException;
+use Dirthara\Schema\Exception\InvalidTableDefinitionException;
 
 use function is_int;
 use function implode;
@@ -375,9 +375,7 @@ abstract class SqlSchemaGrammar implements SchemaGrammar
         }
 
         if (str_contains($value, "\0")) {
-            throw new InvalidSchemaException('A default value cannot contain a null byte.', context: [
-                'driver' => $this->driver()->value,
-            ]);
+            throw InvalidSchemaException::nullByteInDefault($this->driver()->value);
         }
 
         return $this->stringLiteral($value);
@@ -414,10 +412,7 @@ abstract class SqlSchemaGrammar implements SchemaGrammar
     protected function introspected(array $row, string $column): string
     {
         if (!is_string($row[$column] ?? null) || $row[$column] === '') {
-            throw new SchemaIntrospectionException(
-                sprintf('The introspected table has no usable [%s].', $column),
-                context: ['driver' => $this->driver()->value, 'column' => $column],
-            );
+            throw SchemaIntrospectionException::unreadableColumn($this->driver()->value, $column);
         }
 
         return $row[$column];
@@ -425,10 +420,6 @@ abstract class SqlSchemaGrammar implements SchemaGrammar
 
     protected function unsupported(string $message, Identifier $subject, string $operation): UnsupportedDriverException
     {
-        return new UnsupportedDriverException($message, context: [
-            'driver' => $this->driver()->value,
-            'operation' => $operation,
-            'subject' => $subject->name,
-        ]);
+        return UnsupportedDriverException::refused($message, $this->driver()->value, $operation, $subject->name);
     }
 }

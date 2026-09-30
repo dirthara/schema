@@ -9,10 +9,10 @@ use Dirthara\Schema\Identifier;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Schema\Tests\Doubles\UnknownConstraint;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
 use Dirthara\Schema\Tests\Doubles\StandardSchemaGrammar;
-use Dirthara\Schema\Exceptions\UnsupportedDriverException;
-use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
+use Dirthara\Schema\Exception\UnsupportedDriverException;
+use Dirthara\Schema\Exception\SchemaIntrospectionException;
 
 final class SqlSchemaGrammarTest extends TestCase
 {
@@ -116,7 +116,7 @@ final class SqlSchemaGrammarTest extends TestCase
         } catch (UnsupportedDriverException $exception) {
             self::assertSame(
                 ['driver' => 'mysql', 'operation' => 'constraint', 'subject' => 'odd'],
-                $exception->getContext(),
+                $exception->context,
             );
         }
     }
@@ -142,7 +142,7 @@ final class SqlSchemaGrammarTest extends TestCase
         try {
             $this->grammar->compileCreate($table, false);
         } catch (InvalidSchemaException $exception) {
-            self::assertSame(['driver' => 'mysql'], $exception->getContext());
+            self::assertSame(['driver' => 'mysql'], $exception->context);
         }
     }
 
@@ -191,7 +191,7 @@ final class SqlSchemaGrammarTest extends TestCase
         try {
             $this->grammar->compileDropAll([['name' => null]]);
         } catch (SchemaIntrospectionException $exception) {
-            self::assertSame(['driver' => 'mysql', 'column' => 'name'], $exception->getContext());
+            self::assertSame(['driver' => 'mysql', 'column' => 'name'], $exception->context);
         }
     }
 }

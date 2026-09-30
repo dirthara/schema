@@ -20,8 +20,9 @@ Composer installs for you. That package owns the connections, drivers, and
 grammars; this one compiles schema for them. Each database also needs its own
 PDO extension: `pdo_mysql`, `pdo_pgsql`, `pdo_sqlite`, or `pdo_sqlsrv`.
 
-Usage documentation lives in [`docs`](docs), which is published as a Docusaurus
-site by a separate package.
+Usage documentation lives in [`docs`](docs/intro.md) and is published on the
+Dirthara documentation site at <https://dirthara.github.io/docs/>, which
+documents every package in the framework.
 
 ## Docker development environment
 
@@ -174,7 +175,7 @@ docker compose run --rm mago fmt
 ```
 
 The strict types rule reports violations as errors. Its fix needs
-`--potentially-unsafe` because strict typing changes PHP's coercion behavior.
+`--potentially-unsafe` because strict typing changes PHP's coercion behaviour.
 Imports are sorted shortest first within separate class, function, and constant
 lists, with blank lines between the lists.
 

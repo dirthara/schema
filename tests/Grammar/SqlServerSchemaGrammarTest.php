@@ -11,9 +11,9 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Schema\Constraint\ReferentialAction;
 use Dirthara\Schema\Grammar\SqlServerSchemaGrammar;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
-use Dirthara\Schema\Exceptions\UnsupportedDriverException;
-use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
+use Dirthara\Schema\Exception\UnsupportedDriverException;
+use Dirthara\Schema\Exception\SchemaIntrospectionException;
 
 use function sprintf;
 
@@ -192,7 +192,7 @@ final class SqlServerSchemaGrammarTest extends TestCase
 
             self::fail('The grammar accepted a null byte in a default.');
         } catch (InvalidSchemaException $exception) {
-            self::assertSame(['driver' => 'sqlsrv'], $exception->getContext());
+            self::assertSame(['driver' => 'sqlsrv'], $exception->context);
         }
     }
 

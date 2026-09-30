@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Schema\Grammar\SQLiteSchemaGrammar;
 use Dirthara\Schema\Constraint\ReferentialAction;
-use Dirthara\Schema\Exceptions\UnsupportedDriverException;
+use Dirthara\Schema\Exception\UnsupportedDriverException;
 
 final class SQLiteSchemaGrammarTest extends TestCase
 {
@@ -438,10 +438,7 @@ final class SQLiteSchemaGrammarTest extends TestCase
         try {
             $this->alter($table);
         } catch (UnsupportedDriverException $exception) {
-            self::assertSame(
-                ['driver' => 'sqlite', 'operation' => 'alter', 'subject' => 'email'],
-                $exception->getContext(),
-            );
+            self::assertSame(['driver' => 'sqlite', 'operation' => 'alter', 'subject' => 'email'], $exception->context);
         }
     }
 

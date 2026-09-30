@@ -10,7 +10,7 @@ use Dirthara\Schema\Column\Column;
 use Dirthara\Schema\Column\ColumnType;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
 
 final class ColumnTest extends TestCase
 {
@@ -140,7 +140,7 @@ final class ColumnTest extends TestCase
         try {
             $this->column()->length(-5);
         } catch (InvalidSchemaException $exception) {
-            self::assertSame(['column' => 'email', 'length' => -5], $exception->getContext());
+            self::assertSame(['column' => 'email', 'length' => -5], $exception->context);
         }
     }
 
@@ -159,7 +159,7 @@ final class ColumnTest extends TestCase
         try {
             $this->column(ColumnType::Decimal)->precision(0, 0);
         } catch (InvalidSchemaException $exception) {
-            self::assertSame(['column' => 'email', 'precision' => 0], $exception->getContext());
+            self::assertSame(['column' => 'email', 'precision' => 0], $exception->context);
         }
     }
 
@@ -186,7 +186,7 @@ final class ColumnTest extends TestCase
         try {
             $this->column(ColumnType::Decimal)->precision(4, 6);
         } catch (InvalidSchemaException $exception) {
-            self::assertSame(['column' => 'email', 'precision' => 4, 'scale' => 6], $exception->getContext());
+            self::assertSame(['column' => 'email', 'precision' => 4, 'scale' => 6], $exception->context);
         }
     }
 

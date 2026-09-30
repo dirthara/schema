@@ -15,8 +15,8 @@ use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Schema\Change\ModifyColumn;
 use Dirthara\Schema\Change\RenameColumn;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
-use Dirthara\Schema\Exceptions\InvalidTableDefinitionException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
+use Dirthara\Schema\Exception\InvalidTableDefinitionException;
 
 final class TableTest extends TestCase
 {
@@ -55,7 +55,7 @@ final class TableTest extends TestCase
         try {
             $this->table('user"s');
         } catch (InvalidSchemaException $exception) {
-            self::assertSame(['identifier' => 'user"s', 'table' => 'user"s'], $exception->getContext());
+            self::assertSame(['identifier' => 'user"s', 'table' => 'user"s'], $exception->context);
         }
     }
 
@@ -250,7 +250,7 @@ final class TableTest extends TestCase
         try {
             $this->table()->string('e mail');
         } catch (InvalidSchemaException $exception) {
-            self::assertSame(['identifier' => 'e mail', 'table' => 'users'], $exception->getContext());
+            self::assertSame(['identifier' => 'e mail', 'table' => 'users'], $exception->context);
         }
     }
 
@@ -277,7 +277,7 @@ final class TableTest extends TestCase
         try {
             $table->string('email');
         } catch (InvalidTableDefinitionException $exception) {
-            self::assertSame(['table' => 'users', 'column' => 'email'], $exception->getContext());
+            self::assertSame(['table' => 'users', 'column' => 'email'], $exception->context);
         }
     }
 

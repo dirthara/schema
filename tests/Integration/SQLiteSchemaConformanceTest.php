@@ -13,7 +13,7 @@ use Dirthara\Database\Connection\Driver\Driver;
 use Dirthara\Schema\Grammar\SQLiteSchemaGrammar;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Database\Connection\Driver\SQLiteDriver;
-use Dirthara\Schema\Exceptions\SchemaExecutionException;
+use Dirthara\Schema\Exception\SchemaExecutionException;
 use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
 use Dirthara\Database\Connection\Transaction\StandardTransactionGrammar;
@@ -127,11 +127,8 @@ final class SQLiteSchemaConformanceTest extends SchemaConformanceTestCase
             $this->schema->dropAll();
             self::fail('Dropping a referenced table inside a transaction was not reported.');
         } catch (SchemaExecutionException $exception) {
-            self::assertSame('drop_all', $exception->getContext()['operation']);
-            self::assertSame(
-                [self::TABLE, 'conformance_posts', 'conformance_comments'],
-                $exception->getContext()['tables'],
-            );
+            self::assertSame('drop_all', $exception->context['operation']);
+            self::assertSame([self::TABLE, 'conformance_posts', 'conformance_comments'], $exception->context['tables']);
         } finally {
             $this->connection->execute('ROLLBACK');
         }

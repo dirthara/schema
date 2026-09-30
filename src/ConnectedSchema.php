@@ -11,12 +11,12 @@ use Dirthara\Database\Connection\Connection;
 use Dirthara\Database\Connection\Result\Result;
 use Dirthara\Database\Exception\QueryException;
 use Dirthara\Database\Exception\ConnectionException;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
-use Dirthara\Schema\Exceptions\SchemaExecutionException;
-use Dirthara\Schema\Exceptions\SchemaConnectionException;
-use Dirthara\Schema\Exceptions\UnsupportedDriverException;
-use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
-use Dirthara\Schema\Exceptions\InvalidTableDefinitionException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
+use Dirthara\Schema\Exception\SchemaExecutionException;
+use Dirthara\Schema\Exception\SchemaConnectionException;
+use Dirthara\Schema\Exception\UnsupportedDriverException;
+use Dirthara\Schema\Exception\SchemaIntrospectionException;
+use Dirthara\Schema\Exception\InvalidTableDefinitionException;
 
 use function array_column;
 use function array_unique;
@@ -217,17 +217,15 @@ final readonly class ConnectedSchema
         try {
             $this->connection->execute($query);
         } catch (ConnectionException $exception) {
-            throw SchemaConnectionException::fromDatabaseException($exception)->addContext($this->context(
-                $operation,
-                $table,
-                [...$extra, 'query' => $query],
-            ));
+            throw SchemaConnectionException::unavailable($exception, $this->context($operation, $table, [
+                ...$extra,
+                'query' => $query,
+            ]));
         } catch (QueryException $exception) {
-            throw SchemaExecutionException::fromQueryException($exception)->addContext($this->context(
-                $operation,
-                $table,
-                [...$extra, 'query' => $query],
-            ));
+            throw SchemaExecutionException::statementFailed($exception, $this->context($operation, $table, [
+                ...$extra,
+                'query' => $query,
+            ]));
         }
     }
 
@@ -243,24 +241,17 @@ final readonly class ConnectedSchema
             try {
                 $result = $this->connection->execute($query);
             } catch (ConnectionException $exception) {
-                throw SchemaConnectionException::fromDatabaseException($exception)->addContext($this->context(
-                    $operation,
-                    $table,
-                    ['query' => $query],
-                ));
+                throw SchemaConnectionException::unavailable($exception, $this->context($operation, $table, [
+                    'query' => $query,
+                ]));
             } catch (QueryException $exception) {
-                throw SchemaIntrospectionException::fromQueryException($exception)->addContext($this->context(
-                    $operation,
-                    $table,
-                    ['query' => $query],
-                ));
+                throw SchemaIntrospectionException::queryFailed($exception, $this->context($operation, $table, [
+                    'query' => $query,
+                ]));
             }
         }
 
-        return $result ?? throw new SchemaIntrospectionException('The schema grammar compiled no query to introspect with.', context: $this->context(
-            $operation,
-            $table,
-        ));
+        return $result ?? throw SchemaIntrospectionException::nothingCompiled($this->context($operation, $table));
     }
 
     /**

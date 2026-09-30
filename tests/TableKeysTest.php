@@ -16,8 +16,8 @@ use Dirthara\Schema\Change\DropConstraint;
 use Dirthara\Schema\Constraint\PrimaryKey;
 use Dirthara\Schema\Constraint\UniqueConstraint;
 use Dirthara\Schema\Constraint\ReferentialAction;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
-use Dirthara\Schema\Exceptions\InvalidTableDefinitionException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
+use Dirthara\Schema\Exception\InvalidTableDefinitionException;
 
 final class TableKeysTest extends TestCase
 {
@@ -314,7 +314,7 @@ final class TableKeysTest extends TestCase
         try {
             $table->changes();
         } catch (InvalidTableDefinitionException $exception) {
-            self::assertSame(['table' => 'users', 'primary_keys' => 2], $exception->getContext());
+            self::assertSame(['table' => 'users', 'primary_keys' => 2], $exception->context);
         }
     }
 
@@ -343,7 +343,7 @@ final class TableKeysTest extends TestCase
         try {
             $table->changes();
         } catch (InvalidTableDefinitionException $exception) {
-            self::assertSame(['table' => 'users', 'key' => 'users_email_unique'], $exception->getContext());
+            self::assertSame(['table' => 'users', 'key' => 'users_email_unique'], $exception->context);
         }
     }
 
@@ -394,7 +394,7 @@ final class TableKeysTest extends TestCase
         try {
             $table->changes();
         } catch (InvalidTableDefinitionException $exception) {
-            self::assertSame(['table' => 'users', 'key' => 'users_team_id_foreign'], $exception->getContext());
+            self::assertSame(['table' => 'users', 'key' => 'users_team_id_foreign'], $exception->context);
         }
     }
 

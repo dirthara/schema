@@ -11,7 +11,7 @@ use Dirthara\Schema\Column\ColumnType;
 use Dirthara\Schema\Sql\CompiledSchema;
 use Dirthara\Schema\Constraint\PrimaryKey;
 use Dirthara\Database\Connection\Driver\DriverName;
-use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
+use Dirthara\Schema\Exception\SchemaIntrospectionException;
 
 use function sprintf;
 use function str_replace;

@@ -11,7 +11,7 @@ use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Schema\Grammar\MySqlSchemaGrammar;
 use Dirthara\Schema\Constraint\ReferentialAction;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
 
 use function sprintf;
 
@@ -149,7 +149,7 @@ final class MySqlSchemaGrammarTest extends TestCase
 
             self::fail('The grammar accepted a null byte in a default.');
         } catch (InvalidSchemaException $exception) {
-            self::assertSame(['driver' => 'mysql'], $exception->getContext());
+            self::assertSame(['driver' => 'mysql'], $exception->context);
         }
     }
 

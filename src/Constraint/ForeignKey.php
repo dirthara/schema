@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Dirthara\Schema\Constraint;
 
 use Dirthara\Schema\Identifier;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
 
 use function count;
 use function sprintf;

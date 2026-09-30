@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace Dirthara\Schema\Grammar;
 
 use Dirthara\Database\Connection\Driver\DriverName;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
-use Dirthara\Schema\Exceptions\UnsupportedDriverException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
+use Dirthara\Schema\Exception\UnsupportedDriverException;
 
-use function sprintf;
 use function array_key_exists;
 
 final class SchemaGrammarResolver
@@ -38,10 +37,7 @@ final class SchemaGrammarResolver
         $name = $this->name($driver);
 
         if (array_key_exists($name, $this->grammars)) {
-            throw new InvalidSchemaException(
-                sprintf('A schema grammar is already registered for driver [%s].', $name),
-                context: ['driver' => $name],
-            );
+            throw InvalidSchemaException::duplicateGrammar($name);
         }
 
         $this->grammars[$name] = $grammar;
@@ -54,12 +50,7 @@ final class SchemaGrammarResolver
     {
         $name = $this->name($driver);
 
-        return (
-            $this->grammars[$name] ?? throw new UnsupportedDriverException(
-                sprintf('No schema grammar has been registered for driver [%s].', $name),
-                context: ['driver' => $name],
-            )
-        );
+        return $this->grammars[$name] ?? throw UnsupportedDriverException::unregistered($name);
     }
 
     private function name(string|DriverName $driver): string

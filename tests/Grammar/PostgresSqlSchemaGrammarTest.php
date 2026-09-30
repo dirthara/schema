@@ -10,9 +10,9 @@ use Dirthara\Schema\Column\ColumnType;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Schema\Constraint\ReferentialAction;
+use Dirthara\Schema\Exception\InvalidSchemaException;
 use Dirthara\Schema\Grammar\PostgresSqlSchemaGrammar;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
-use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
+use Dirthara\Schema\Exception\SchemaIntrospectionException;
 
 use function sprintf;
 
@@ -163,7 +163,7 @@ final class PostgresSqlSchemaGrammarTest extends TestCase
 
             self::fail('The grammar accepted a null byte in a default.');
         } catch (InvalidSchemaException $exception) {
-            self::assertSame(['driver' => 'pgsql'], $exception->getContext());
+            self::assertSame(['driver' => 'pgsql'], $exception->context);
         }
     }
 

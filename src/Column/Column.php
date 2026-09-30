@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Dirthara\Schema\Column;
 
 use Dirthara\Schema\Identifier;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
-
-use function sprintf;
+use Dirthara\Schema\Exception\InvalidSchemaException;
 
 final class Column
 {
@@ -44,10 +42,7 @@ final class Column
     public function length(int $length): self
     {
         if ($length < 1) {
-            throw new InvalidSchemaException(
-                sprintf('The length of column [%s] must be at least 1, got %d.', $this->name->name, $length),
-                context: ['column' => $this->name->name, 'length' => $length],
-            );
+            throw InvalidSchemaException::invalidLength($this->name->name, $length);
         }
 
         $this->length = $length;
@@ -61,22 +56,11 @@ final class Column
     public function precision(int $precision, int $scale): self
     {
         if ($precision < 1) {
-            throw new InvalidSchemaException(
-                sprintf('The precision of column [%s] must be at least 1, got %d.', $this->name->name, $precision),
-                context: ['column' => $this->name->name, 'precision' => $precision],
-            );
+            throw InvalidSchemaException::invalidPrecision($this->name->name, $precision);
         }
 
         if ($scale < 0 || $scale > $precision) {
-            throw new InvalidSchemaException(
-                sprintf(
-                    'The scale of column [%s] must be between 0 and its precision of %d, got %d.',
-                    $this->name->name,
-                    $precision,
-                    $scale,
-                ),
-                context: ['column' => $this->name->name, 'precision' => $precision, 'scale' => $scale],
-            );
+            throw InvalidSchemaException::invalidScale($this->name->name, $precision, $scale);
         }
 
         $this->precision = $precision;

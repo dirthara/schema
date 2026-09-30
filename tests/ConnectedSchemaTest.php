@@ -17,11 +17,11 @@ use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Database\Exception\ConnectionException;
 use Dirthara\Database\Connection\Driver\SQLiteDriver;
 use Dirthara\Schema\Tests\Doubles\ThrowingConnection;
-use Dirthara\Schema\Exceptions\SchemaExecutionException;
+use Dirthara\Schema\Exception\SchemaExecutionException;
+use Dirthara\Schema\Exception\SchemaConnectionException;
 use Dirthara\Schema\Tests\Doubles\StandardSchemaGrammar;
-use Dirthara\Schema\Exceptions\SchemaConnectionException;
 use Dirthara\Schema\Tests\Doubles\RecordingSchemaGrammar;
-use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
+use Dirthara\Schema\Exception\SchemaIntrospectionException;
 use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
 use Dirthara\Database\Connection\Transaction\StandardTransactionGrammar;
@@ -221,7 +221,7 @@ final class ConnectedSchemaTest extends TestCase
         } catch (SchemaIntrospectionException $exception) {
             self::assertSame(
                 ['connection' => 'schema', 'driver' => 'sqlite', 'operation' => 'has_table', 'table' => 'users'],
-                $exception->getContext(),
+                $exception->context,
             );
         }
     }
@@ -260,7 +260,7 @@ final class ConnectedSchemaTest extends TestCase
                     'table' => 'users',
                     'query' => 'CREATE TABLE',
                 ],
-                $exception->getContext(),
+                $exception->context,
             );
         }
     }
@@ -280,7 +280,7 @@ final class ConnectedSchemaTest extends TestCase
                     'to' => 'people',
                     'query' => 'ALTER NONSENSE',
                 ],
-                $exception->getContext(),
+                $exception->context,
             );
         }
     }
@@ -309,7 +309,7 @@ final class ConnectedSchemaTest extends TestCase
                     'table' => 'users',
                     'query' => 'SELECT FROM nowhere',
                 ],
-                $exception->getContext(),
+                $exception->context,
             );
         }
     }
@@ -339,7 +339,7 @@ final class ConnectedSchemaTest extends TestCase
                     'table' => 'users',
                     'query' => 'SELECT 1',
                 ],
-                $exception->getContext(),
+                $exception->context,
             );
         }
     }
@@ -368,7 +368,7 @@ final class ConnectedSchemaTest extends TestCase
                     'table' => 'users',
                     'query' => 'SELECT 1',
                 ],
-                $exception->getContext(),
+                $exception->context,
             );
         }
     }
@@ -461,7 +461,7 @@ final class ConnectedSchemaTest extends TestCase
                     'tables' => ['users'],
                     'query' => 'DROP TABLE missing',
                 ],
-                $exception->getContext(),
+                $exception->context,
             );
             self::assertInstanceOf(QueryException::class, $exception->getPrevious());
         }
@@ -479,7 +479,7 @@ final class ConnectedSchemaTest extends TestCase
             $this->compiling(['DROP TABLE missing'])->dropAll();
             self::fail('The failing drop was not reported.');
         } catch (SchemaExecutionException $exception) {
-            self::assertSame(['posts', 'users'], $exception->getContext()['tables']);
+            self::assertSame(['posts', 'users'], $exception->context['tables']);
         }
     }
 
@@ -492,8 +492,8 @@ final class ConnectedSchemaTest extends TestCase
             $this->compiling(['SELECT 1'])->dropAll();
             self::fail('The failing cleanup was not reported.');
         } catch (SchemaExecutionException $exception) {
-            self::assertSame('NOT SQL', $exception->getContext()['query']);
-            self::assertArrayNotHasKey('cleanup_query', $exception->getContext());
+            self::assertSame('NOT SQL', $exception->context['query']);
+            self::assertArrayNotHasKey('cleanup_query', $exception->context);
         }
     }
 
@@ -506,8 +506,8 @@ final class ConnectedSchemaTest extends TestCase
             $this->compiling(['DROP TABLE missing'])->dropAll();
             self::fail('The failing drop was not reported.');
         } catch (SchemaExecutionException $exception) {
-            self::assertSame('DROP TABLE missing', $exception->getContext()['query']);
-            self::assertSame('NOT SQL', $exception->getContext()['cleanup_query']);
+            self::assertSame('DROP TABLE missing', $exception->context['query']);
+            self::assertSame('NOT SQL', $exception->context['cleanup_query']);
         }
     }
 
@@ -537,7 +537,7 @@ final class ConnectedSchemaTest extends TestCase
                     'operation' => 'drop_all',
                     'query' => 'SELECT FROM nowhere',
                 ],
-                $exception->getContext(),
+                $exception->context,
             );
         }
     }
@@ -567,7 +567,7 @@ final class ConnectedSchemaTest extends TestCase
             self::assertSame('The schema grammar compiled no query to introspect with.', $exception->getMessage());
             self::assertSame(
                 ['connection' => 'schema', 'driver' => 'sqlite', 'operation' => 'drop_all'],
-                $exception->getContext(),
+                $exception->context,
             );
         }
     }
@@ -587,7 +587,7 @@ final class ConnectedSchemaTest extends TestCase
                     'operation' => 'drop_all',
                     'tables' => [42],
                 ],
-                $exception->getContext(),
+                $exception->context,
             );
         }
     }
@@ -606,7 +606,7 @@ final class ConnectedSchemaTest extends TestCase
                     'operation' => 'drop_all',
                     'query' => "SELECT 'users' AS name",
                 ],
-                $exception->getContext(),
+                $exception->context,
             );
         }
     }

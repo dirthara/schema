@@ -9,18 +9,22 @@ description: The exception hierarchy, the context each exception carries, and wh
 
 ## The hierarchy
 
-Every exception the package throws extends `SchemaException`, so one `catch`
-covers all of them.
+`SchemaException` is an interface, and every exception the package throws
+implements it, so one `catch` covers all of them. Each exception also extends
+the PHP exception that fits the failure, so code that already catches those
+keeps working.
 
 ```text
-SchemaException
-├── InvalidSchemaException
-├── InvalidTableDefinitionException
-├── UnsupportedDriverException
-├── SchemaConnectionException
-├── SchemaExecutionException
-└── SchemaIntrospectionException
+SchemaException (interface)
+├── InvalidSchemaException            extends InvalidArgumentException
+├── InvalidTableDefinitionException   extends InvalidArgumentException
+├── UnsupportedDriverException        extends RuntimeException
+├── SchemaConnectionException         extends RuntimeException
+├── SchemaExecutionException          extends RuntimeException
+└── SchemaIntrospectionException      extends RuntimeException
 ```
+
+They live in the `Dirthara\Schema\Exception` namespace.
 
 | Exception | Thrown when |
 | --- | --- |
@@ -36,28 +40,36 @@ compile never touches the database.
 
 ## Context
 
-`SchemaException` carries an `array<string, mixed>` of diagnostic data
-alongside the message.
+A `SchemaException` carries an `array<string, mixed>` of diagnostic data
+alongside the message, readable as its `context` property.
 
 ```php
 try {
     $schema->create('users', $definition);
 } catch (SchemaException $exception) {
-    $logger->error($exception->getMessage(), $exception->getContext() + [
+    $logger->error($exception->getMessage(), [
+        ...$exception->context,
         'exception' => $exception,
     ]);
 }
 ```
 
 The `exception` key must contain the caught exception even when the context
-already has an entry under that name.
+already has an entry under that name, which is why it is written last.
 
-`addContext()` merges more in and returns the exception, so a layer that knows
-something the thrower did not can add it and rethrow:
+The property is read-only from outside. `addContext()` merges more in and
+returns the exception, so a layer that knows something the thrower did not can
+add it and rethrow:
 
 ```php
 throw $exception->addContext(['migration' => $migration::class]);
 ```
+
+An exception is never built with `new`. Each failure has a named factory, such
+as `InvalidSchemaException::invalidIdentifier()`, so its message and context are
+written in one place. A value quoted in a message has its control characters
+escaped, so a rejected name cannot forge a line in a log; the context keeps the
+value exactly as it was given.
 
 ### What each carries
 
@@ -117,8 +129,8 @@ Wrapping is deliberate: a caller should not need `dirthara/database` in a
 ## Catching the right thing
 
 ```php
-use Dirthara\Schema\Exceptions\UnsupportedDriverException;
-use Dirthara\Schema\Exceptions\InvalidTableDefinitionException;
+use Dirthara\Schema\Exception\UnsupportedDriverException;
+use Dirthara\Schema\Exception\InvalidTableDefinitionException;
 
 try {
     $schema->table('users', $changes);

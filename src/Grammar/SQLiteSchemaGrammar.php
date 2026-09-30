@@ -13,9 +13,9 @@ use Dirthara\Schema\Constraint\Constraint;
 use Dirthara\Schema\Constraint\PrimaryKey;
 use Dirthara\Schema\Constraint\UniqueConstraint;
 use Dirthara\Database\Connection\Driver\DriverName;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
-use Dirthara\Schema\Exceptions\UnsupportedDriverException;
-use Dirthara\Schema\Exceptions\SchemaIntrospectionException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
+use Dirthara\Schema\Exception\UnsupportedDriverException;
+use Dirthara\Schema\Exception\SchemaIntrospectionException;
 
 use function count;
 use function sprintf;

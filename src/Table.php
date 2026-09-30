@@ -20,11 +20,10 @@ use Dirthara\Schema\Constraint\Constraint;
 use Dirthara\Schema\Constraint\ForeignKey;
 use Dirthara\Schema\Constraint\PrimaryKey;
 use Dirthara\Schema\Constraint\UniqueConstraint;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
-use Dirthara\Schema\Exceptions\InvalidTableDefinitionException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
+use Dirthara\Schema\Exception\InvalidTableDefinitionException;
 
 use function implode;
-use function sprintf;
 use function array_map;
 use function is_string;
 use function array_values;
@@ -394,14 +393,7 @@ final class Table
         $identifier = $this->identify($name);
 
         if (array_key_exists($identifier->name, $this->defined)) {
-            throw new InvalidTableDefinitionException(
-                sprintf(
-                    'The column [%s] is defined more than once on table [%s].',
-                    $identifier->name,
-                    $this->name->name,
-                ),
-                context: ['table' => $this->name->name, 'column' => $identifier->name],
-            );
+            throw InvalidTableDefinitionException::duplicateColumn($this->name->name, $identifier->name);
         }
 
         $this->defined[$identifier->name] = true;
@@ -466,10 +458,7 @@ final class Table
         }
 
         if ($primaries > 1) {
-            throw new InvalidTableDefinitionException(
-                sprintf('Table [%s] defines %d primary keys, and a table has one.', $this->name->name, $primaries),
-                context: ['table' => $this->name->name, 'primary_keys' => $primaries],
-            );
+            throw InvalidTableDefinitionException::tooManyPrimaryKeys($this->name->name, $primaries);
         }
 
         $taken = [];
@@ -486,10 +475,7 @@ final class Table
             }
 
             if (array_key_exists($name, $taken)) {
-                throw new InvalidTableDefinitionException(
-                    sprintf('Table [%s] defines [%s] more than once.', $this->name->name, $name),
-                    context: ['table' => $this->name->name, 'key' => $name],
-                );
+                throw InvalidTableDefinitionException::duplicateKey($this->name->name, $name);
             }
 
             $taken[$name] = true;
@@ -508,10 +494,11 @@ final class Table
         $reason = $constraint->incompleteness();
 
         if ($reason !== null) {
-            throw new InvalidTableDefinitionException($reason, context: [
-                'table' => $this->name->name,
-                'key' => $constraint->name->name,
-            ]);
+            throw InvalidTableDefinitionException::incompleteForeignKey(
+                $this->name->name,
+                $constraint->name->name,
+                $reason,
+            );
         }
     }
 
@@ -527,10 +514,7 @@ final class Table
         $names = is_string($columns) ? [$columns] : $columns;
 
         if ($names === []) {
-            throw new InvalidTableDefinitionException(
-                sprintf('A key on table [%s] needs at least one column.', $this->name->name),
-                context: ['table' => $this->name->name],
-            );
+            throw InvalidTableDefinitionException::keyWithoutColumns($this->name->name);
         }
 
         return array_values(array_map($this->identify(...), $names));

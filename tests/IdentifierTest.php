@@ -8,7 +8,7 @@ use Dirthara\Schema\Identifier;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\DataProvider;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
 
 final class IdentifierTest extends TestCase
 {
@@ -83,7 +83,7 @@ final class IdentifierTest extends TestCase
         try {
             new Identifier('user name');
         } catch (InvalidSchemaException $exception) {
-            self::assertSame(['identifier' => 'user name'], $exception->getContext());
+            self::assertSame(['identifier' => 'user name'], $exception->context);
             self::assertStringContainsString('[user name]', $exception->getMessage());
         }
     }

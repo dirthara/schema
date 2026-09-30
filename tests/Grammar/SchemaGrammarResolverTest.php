@@ -8,9 +8,9 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Schema\Grammar\SchemaGrammarResolver;
 use Dirthara\Database\Connection\Driver\DriverName;
-use Dirthara\Schema\Exceptions\InvalidSchemaException;
+use Dirthara\Schema\Exception\InvalidSchemaException;
+use Dirthara\Schema\Exception\UnsupportedDriverException;
 use Dirthara\Schema\Tests\Doubles\RecordingSchemaGrammar;
-use Dirthara\Schema\Exceptions\UnsupportedDriverException;
 
 final class SchemaGrammarResolverTest extends TestCase
 {
@@ -66,7 +66,7 @@ final class SchemaGrammarResolverTest extends TestCase
             $resolver->resolve(DriverName::SqlServer);
         } catch (UnsupportedDriverException $exception) {
             self::assertSame('No schema grammar has been registered for driver [sqlsrv].', $exception->getMessage());
-            self::assertSame(['driver' => 'sqlsrv'], $exception->getContext());
+            self::assertSame(['driver' => 'sqlsrv'], $exception->context);
         }
     }
 
@@ -78,7 +78,7 @@ final class SchemaGrammarResolverTest extends TestCase
         try {
             $resolver->register('mysql', new RecordingSchemaGrammar());
         } catch (InvalidSchemaException $exception) {
-            self::assertSame(['driver' => 'mysql'], $exception->getContext());
+            self::assertSame(['driver' => 'mysql'], $exception->context);
         }
     }
 }
