@@ -24,15 +24,18 @@ Mapping it onto a native type is the grammar's job.
 | `String` | `VARCHAR(n)` | `VARCHAR(n)` | `VARCHAR(n)` | `NVARCHAR(n)` |
 | `Text` | `TEXT` | `TEXT` | `TEXT` | `NVARCHAR(MAX)` |
 | `Date` | `DATE` | `DATE` | `DATE` | `DATE` |
-| `Time` | `TIME` | `TIME` | `TIME` | `TIME` |
-| `DateTime` | `DATETIME` | `DATETIME` | `TIMESTAMP` | `DATETIME2` |
-| `Timestamp` | `DATETIME` | `TIMESTAMP` | `TIMESTAMP` | `DATETIME2` |
+| `Time` | `TIME(f)` | `TIME(f)` | `TIME(f)` | `TIME(f)` |
+| `DateTime` | `DATETIME(f)` | `DATETIME(f)` | `TIMESTAMP(f)` | `DATETIME2(f)` |
+| `Timestamp` | `DATETIME(f)` | `TIMESTAMP(f)` | `TIMESTAMP(f)` | `DATETIME2(f)` |
 | `Uuid` | `CHAR(36)` | `CHAR(36)` | `UUID` | `UNIQUEIDENTIFIER` |
 | `Json` | `TEXT` | `JSON` | `JSONB` | `NVARCHAR(MAX)` |
 | `Binary` | `BLOB` | `BLOB` | `BYTEA` | `VARBINARY(MAX)` |
 
 `n` is the length from `string()` or `char()`, defaulting to `255`. `p` and `s`
-are the precision and scale from `decimal()`, defaulting to `8` and `2`.
+are the precision and scale from `decimal()`, defaulting to `8` and `2`. `f` is
+the fractional seconds precision from `time()`, `dateTime()` or `timestamp()`;
+without one, the type is emitted bare and the database's own default applies.
+See [Fractional seconds](../tables/columns.md#fractional-seconds).
 
 ## Choices worth knowing about
 

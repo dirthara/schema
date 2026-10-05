@@ -132,6 +132,28 @@ abstract class SchemaConformanceTestCase extends TestCase
         });
     }
 
+    /**
+     * @return array<string, mixed>
+     */
+    protected function storeMoments(int $precision): array
+    {
+        $this->schema->create(self::TABLE, static function (Table $table) use ($precision): void {
+            $table->id();
+            $table->time('clock', $precision)->nullable();
+            $table->dateTime('happened', $precision)->nullable();
+            $table->timestamp('recorded', $precision)->nullable();
+        });
+
+        $this->insert(
+            'clock, happened, recorded',
+            "'12:34:56.123456', '2026-10-05 12:34:56.123456', '2026-10-05 12:34:56.123456'",
+        );
+
+        return (
+            $this->connection->execute(sprintf('SELECT clock, happened, recorded FROM %s', self::TABLE))->first() ?? []
+        );
+    }
+
     protected function assertNoTables(string ...$tables): void
     {
         foreach ($tables as $table) {
@@ -458,5 +480,40 @@ abstract class SchemaConformanceTestCase extends TestCase
         } finally {
             $neighbour->execute(sprintf('DROP TABLE %s', $kept));
         }
+    }
+
+    #[Test]
+    public function it_keeps_milliseconds(): void
+    {
+        self::assertSame(
+            [
+                'clock' => '12:34:56.123',
+                'happened' => '2026-10-05 12:34:56.123',
+                'recorded' => '2026-10-05 12:34:56.123',
+            ],
+            $this->storeMoments(3),
+        );
+    }
+
+    #[Test]
+    public function it_keeps_microseconds(): void
+    {
+        self::assertSame(
+            [
+                'clock' => '12:34:56.123456',
+                'happened' => '2026-10-05 12:34:56.123456',
+                'recorded' => '2026-10-05 12:34:56.123456',
+            ],
+            $this->storeMoments(6),
+        );
+    }
+
+    #[Test]
+    public function it_keeps_whole_seconds(): void
+    {
+        self::assertSame(
+            ['clock' => '12:34:56', 'happened' => '2026-10-05 12:34:56', 'recorded' => '2026-10-05 12:34:56'],
+            $this->storeMoments(0),
+        );
     }
 }

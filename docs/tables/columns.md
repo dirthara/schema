@@ -31,14 +31,14 @@ $table->string('email', 255)->nullable()->default(null);
 | `string(string $name, int $length = 255)` | `String` | |
 | `text(string $name)` | `Text` | |
 | `date(string $name)` | `Date` | |
-| `time(string $name)` | `Time` | |
-| `dateTime(string $name)` | `DateTime` | |
-| `timestamp(string $name)` | `Timestamp` | |
+| `time(string $name, ?int $precision = null)` | `Time` | See [Fractional seconds](#fractional-seconds). |
+| `dateTime(string $name, ?int $precision = null)` | `DateTime` | See [Fractional seconds](#fractional-seconds). |
+| `timestamp(string $name, ?int $precision = null)` | `Timestamp` | See [Fractional seconds](#fractional-seconds). |
 | `uuid(string $name = 'uuid')` | `Uuid` | Native `UUID` on PostgreSQL, `CHAR(36)` elsewhere. |
 | `json(string $name)` | `Json` | |
 | `binary(string $name)` | `Binary` | |
 | `column(string $name, ColumnType $type)` | any | The escape hatch when the type is in a variable. |
-| `timestamps(string $created = 'created_at', string $updated = 'updated_at')` | `Timestamp` | Declares both, nullable. Returns `void`. |
+| `timestamps(string $created = 'created_at', string $updated = 'updated_at', ?int $precision = null)` | `Timestamp` | Declares both, nullable, with the same precision. Returns `void`. |
 
 What each type becomes per database is in
 [Type mapping](../grammars/type-mapping.md).
@@ -58,6 +58,7 @@ Every modifier returns the column.
 | `default(scalar or null $value)` | no default | Sets a `DEFAULT`. |
 | `length(int $length)` | set by `string()` and `char()` | Rejects anything below `1`. |
 | `precision(int $precision, int $scale)` | set by `decimal()` | Rejects a scale above the precision or below `0`. |
+| `fractionalSeconds(int $precision)` | set by `time()`, `dateTime()` and `timestamp()` | Digits kept after the decimal point of the seconds. Rejects anything outside `0` to `6`. |
 | `unsigned(bool $unsigned = true)` | signed | Only MySQL applies it; see below. |
 | `autoIncrement(bool $autoIncrement = true)` | off | The database generates the value. |
 | `primary(bool $primary = true)` | off | Joins the table's primary key. |
@@ -72,6 +73,44 @@ a definition is built up conditionally.
 unsigned integer types, and their grammars drop the modifier rather than emit
 something the server would reject. A column you rely on being non-negative needs
 a check constraint, which this package does not yet model.
+:::
+
+## Fractional seconds
+
+`time()`, `dateTime()` and `timestamp()` take an optional precision: how many
+digits the column keeps after the decimal point of the seconds.
+
+```php
+$table->dateTime('logged_at', 3);       // milliseconds
+$table->timestamp('measured_at', 6);    // microseconds
+$table->time('opens_at', 0);            // whole seconds
+$table->timestamps(precision: 6);
+```
+
+| Precision | Keeps | Example |
+| --- | --- | --- |
+| `0` | whole seconds | `12:34:56` |
+| `3` | milliseconds | `12:34:56.123` |
+| `6` | microseconds | `12:34:56.123456` |
+
+Any value from `0` to `6` is accepted; anything else throws
+`InvalidSchemaException`. `6` is the most MySQL and PostgreSQL can store, so it
+is the most a definition can ask for on every database. None of the four
+databases stores nanoseconds: SQL Server stops at seven digits, a tenth of a
+microsecond, and the other three at six. A value with more digits than the
+column keeps is rounded by the server when it is written, not truncated.
+
+:::caution
+Leaving the precision out does not mean whole seconds everywhere. The grammar
+then emits the bare type, and each database applies its own default: MySQL keeps
+whole seconds, PostgreSQL keeps microseconds, and SQL Server keeps seven digits.
+Pass a precision when the column has to behave the same on every database.
+:::
+
+:::note
+SQLite records the precision in the declared type, as `DATETIME(3)`, but stores
+a date and time as the text it was given. It neither rounds nor pads the
+fractional seconds, so the application decides what is written.
 :::
 
 ## Defaults are written into the statement

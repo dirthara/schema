@@ -9,11 +9,15 @@ use Dirthara\Schema\Exception\InvalidSchemaException;
 
 final class Column
 {
+    public const int MAX_FRACTIONAL_SECONDS = 6;
+
     public private(set) ?int $length = null;
 
     public private(set) ?int $precision = null;
 
     public private(set) ?int $scale = null;
+
+    public private(set) ?int $fractionalSeconds = null;
 
     public private(set) bool $nullable = false;
 
@@ -65,6 +69,24 @@ final class Column
 
         $this->precision = $precision;
         $this->scale = $scale;
+
+        return $this;
+    }
+
+    /**
+     * @throws InvalidSchemaException
+     */
+    public function fractionalSeconds(int $precision): self
+    {
+        if ($precision < 0 || $precision > self::MAX_FRACTIONAL_SECONDS) {
+            throw InvalidSchemaException::invalidFractionalSeconds(
+                $this->name->name,
+                $precision,
+                self::MAX_FRACTIONAL_SECONDS,
+            );
+        }
+
+        $this->fractionalSeconds = $precision;
 
         return $this;
     }

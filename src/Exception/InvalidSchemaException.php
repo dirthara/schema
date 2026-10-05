@@ -67,6 +67,19 @@ final class InvalidSchemaException extends InvalidArgumentException implements S
         );
     }
 
+    public static function invalidFractionalSeconds(string $column, int $precision, int $maximum): self
+    {
+        return new self(
+            message: sprintf(
+                'The fractional seconds precision of column [%s] must be between 0 and %d, got %d.',
+                $column,
+                $maximum,
+                $precision,
+            ),
+            context: ['column' => $column, 'precision' => $precision, 'maximum' => $maximum],
+        );
+    }
+
     public static function nullByteInDefault(string $driver): self
     {
         return new self(message: 'A default value cannot contain a null byte.', context: ['driver' => $driver]);

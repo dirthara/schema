@@ -223,6 +223,60 @@ final class TableTest extends TestCase
         self::assertTrue($changes[1]->column->nullable);
     }
 
+    /**
+     * @return iterable<string, array{Closure(Table): Column, ColumnType}>
+     */
+    public static function temporalTypes(): iterable
+    {
+        yield 'time' => [static fn(Table $table): Column => $table->time('value', 3), ColumnType::Time];
+        yield 'dateTime' => [static fn(Table $table): Column => $table->dateTime('value', 3), ColumnType::DateTime];
+        yield 'timestamp' => [static fn(Table $table): Column => $table->timestamp('value', 3), ColumnType::Timestamp];
+    }
+
+    /**
+     * @param Closure(Table): Column $define
+     */
+    #[Test]
+    #[DataProvider('temporalTypes')]
+    public function it_defines_a_temporal_column_with_a_fractional_seconds_precision(
+        Closure $define,
+        ColumnType $type,
+    ): void {
+        $column = $define($this->table());
+
+        self::assertSame($type, $column->type);
+        self::assertSame(3, $column->fractionalSeconds);
+    }
+
+    #[Test]
+    public function it_leaves_the_fractional_seconds_precision_to_the_database_by_default(): void
+    {
+        self::assertNull($this->table()->dateTime('value')->fractionalSeconds);
+    }
+
+    #[Test]
+    public function it_rejects_a_temporal_column_with_an_invalid_fractional_seconds_precision(): void
+    {
+        $this->expectException(InvalidSchemaException::class);
+
+        $this->table()->timestamp('value', 9);
+    }
+
+    #[Test]
+    public function it_gives_the_record_timestamps_a_fractional_seconds_precision(): void
+    {
+        $table = $this->table();
+
+        $table->timestamps(precision: 6);
+
+        $changes = $table->changes();
+
+        self::assertInstanceOf(AddColumn::class, $changes[0]);
+        self::assertInstanceOf(AddColumn::class, $changes[1]);
+        self::assertSame(6, $changes[0]->column->fractionalSeconds);
+        self::assertSame(6, $changes[1]->column->fractionalSeconds);
+    }
+
     #[Test]
     public function it_keeps_a_modifier_chained_after_the_column_was_recorded(): void
     {

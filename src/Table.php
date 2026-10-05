@@ -185,27 +185,27 @@ final class Table
      * @throws InvalidSchemaException
      * @throws InvalidTableDefinitionException
      */
-    public function time(string $name): Column
+    public function time(string $name, ?int $precision = null): Column
     {
-        return $this->define($name, ColumnType::Time);
+        return $this->temporal($name, ColumnType::Time, $precision);
     }
 
     /**
      * @throws InvalidSchemaException
      * @throws InvalidTableDefinitionException
      */
-    public function dateTime(string $name): Column
+    public function dateTime(string $name, ?int $precision = null): Column
     {
-        return $this->define($name, ColumnType::DateTime);
+        return $this->temporal($name, ColumnType::DateTime, $precision);
     }
 
     /**
      * @throws InvalidSchemaException
      * @throws InvalidTableDefinitionException
      */
-    public function timestamp(string $name): Column
+    public function timestamp(string $name, ?int $precision = null): Column
     {
-        return $this->define($name, ColumnType::Timestamp);
+        return $this->temporal($name, ColumnType::Timestamp, $precision);
     }
 
     /**
@@ -239,10 +239,13 @@ final class Table
      * @throws InvalidSchemaException
      * @throws InvalidTableDefinitionException
      */
-    public function timestamps(string $created = 'created_at', string $updated = 'updated_at'): void
-    {
-        $this->timestamp($created)->nullable();
-        $this->timestamp($updated)->nullable();
+    public function timestamps(
+        string $created = 'created_at',
+        string $updated = 'updated_at',
+        ?int $precision = null,
+    ): void {
+        $this->timestamp($created, $precision)->nullable();
+        $this->timestamp($updated, $precision)->nullable();
     }
 
     /**
@@ -403,6 +406,17 @@ final class Table
         $this->entries[] = $column;
 
         return $column;
+    }
+
+    /**
+     * @throws InvalidSchemaException
+     * @throws InvalidTableDefinitionException
+     */
+    private function temporal(string $name, ColumnType $type, ?int $precision): Column
+    {
+        $column = $this->define($name, $type);
+
+        return $precision === null ? $column : $column->fractionalSeconds($precision);
     }
 
     /**

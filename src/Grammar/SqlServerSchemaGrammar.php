@@ -127,8 +127,8 @@ class SqlServerSchemaGrammar extends SqlSchemaGrammar
             ColumnType::String => sprintf('NVARCHAR(%d)', $column->length ?? 255),
             ColumnType::Text, ColumnType::Json => 'NVARCHAR(MAX)',
             ColumnType::Date => 'DATE',
-            ColumnType::Time => 'TIME',
-            ColumnType::DateTime, ColumnType::Timestamp => 'DATETIME2',
+            ColumnType::Time => $this->fractionalSeconds('TIME', $column),
+            ColumnType::DateTime, ColumnType::Timestamp => $this->fractionalSeconds('DATETIME2', $column),
             ColumnType::Uuid => 'UNIQUEIDENTIFIER',
             ColumnType::Binary => 'VARBINARY(MAX)',
         };

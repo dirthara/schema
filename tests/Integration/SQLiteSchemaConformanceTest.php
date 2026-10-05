@@ -19,6 +19,7 @@ use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
 use Dirthara\Database\Connection\Transaction\StandardTransactionGrammar;
 
 use function sprintf;
+use function array_column;
 
 #[Group('conformance')]
 final class SQLiteSchemaConformanceTest extends SchemaConformanceTestCase
@@ -63,6 +64,20 @@ final class SQLiteSchemaConformanceTest extends SchemaConformanceTestCase
             $table->bigInteger('left_id')->nullable();
             $table->foreign('left_id')->references('id')->on('conformance_left');
         });
+    }
+
+    /**
+     * @return array<array-key, mixed>
+     */
+    private function declaredTypes(): array
+    {
+        return array_column(
+            $this->connection->execute(sprintf(
+                'SELECT type FROM pragma_table_info(%s)',
+                "'" . self::TABLE . "'",
+            ))->all(),
+            'type',
+        );
     }
 
     private function enforcesForeignKeys(): bool
@@ -179,6 +194,38 @@ final class SQLiteSchemaConformanceTest extends SchemaConformanceTestCase
         self::assertSame(
             [],
             $this->connection->execute('SELECT name FROM sqlite_master WHERE type = \'table\'')->all(),
+        );
+    }
+
+    #[Test]
+    public function it_keeps_milliseconds(): void
+    {
+        $stored = $this->storeMoments(3);
+
+        self::assertSame(['INTEGER', 'TIME(3)', 'DATETIME(3)', 'DATETIME(3)'], $this->declaredTypes());
+        self::assertSame(
+            [
+                'clock' => '12:34:56.123456',
+                'happened' => '2026-10-05 12:34:56.123456',
+                'recorded' => '2026-10-05 12:34:56.123456',
+            ],
+            $stored,
+        );
+    }
+
+    #[Test]
+    public function it_keeps_whole_seconds(): void
+    {
+        $stored = $this->storeMoments(0);
+
+        self::assertSame(['INTEGER', 'TIME(0)', 'DATETIME(0)', 'DATETIME(0)'], $this->declaredTypes());
+        self::assertSame(
+            [
+                'clock' => '12:34:56.123456',
+                'happened' => '2026-10-05 12:34:56.123456',
+                'recorded' => '2026-10-05 12:34:56.123456',
+            ],
+            $stored,
         );
     }
 }
