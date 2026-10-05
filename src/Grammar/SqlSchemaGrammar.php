@@ -335,6 +335,11 @@ abstract class SqlSchemaGrammar implements SchemaGrammar
         return $sql . $this->autoIncrement($column, $inlinePrimaryKey);
     }
 
+    protected function fractionalSeconds(string $type, Column $column): string
+    {
+        return $column->fractionalSeconds === null ? $type : sprintf('%s(%d)', $type, $column->fractionalSeconds);
+    }
+
     protected function unsigned(Column $column): string
     {
         return $column->unsigned ? ' UNSIGNED' : '';

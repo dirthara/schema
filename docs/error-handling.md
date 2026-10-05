@@ -83,6 +83,7 @@ value exactly as it was given.
 | A listed table the grammar could not read | `driver`, `column`, `connection`, `operation`, `tables` |
 | An invalid name | `identifier`, and `table` when it was declared on one |
 | An invalid length or precision | `column`, plus `length`, `precision` or `scale` |
+| An invalid fractional seconds precision | `column`, `precision`, `maximum` |
 | A duplicate column | `table`, `column` |
 | Too many primary keys | `table`, `primary_keys` |
 | A duplicate key name | `table`, `key` |

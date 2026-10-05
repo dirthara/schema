@@ -108,8 +108,8 @@ class SQLiteSchemaGrammar extends SqlSchemaGrammar
             ColumnType::String => sprintf('VARCHAR(%d)', $column->length ?? 255),
             ColumnType::Text, ColumnType::Json => 'TEXT',
             ColumnType::Date => 'DATE',
-            ColumnType::Time => 'TIME',
-            ColumnType::DateTime, ColumnType::Timestamp => 'DATETIME',
+            ColumnType::Time => $this->fractionalSeconds('TIME', $column),
+            ColumnType::DateTime, ColumnType::Timestamp => $this->fractionalSeconds('DATETIME', $column),
             ColumnType::Uuid => 'CHAR(36)',
             ColumnType::Binary => 'BLOB',
         };

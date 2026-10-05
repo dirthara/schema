@@ -117,6 +117,35 @@ final class MySqlSchemaGrammarTest extends TestCase
         self::assertSame([sprintf('CREATE TABLE `users` (`value` %s NOT NULL)', $expected)], $this->create($table));
     }
 
+    /**
+     * @return iterable<string, array{ColumnType, int, string}>
+     */
+    public static function fractionalSeconds(): iterable
+    {
+        yield 'time in whole seconds' => [ColumnType::Time, 0, 'TIME(0)'];
+        yield 'time in milliseconds' => [ColumnType::Time, 3, 'TIME(3)'];
+        yield 'time in microseconds' => [ColumnType::Time, 6, 'TIME(6)'];
+        yield 'date time in whole seconds' => [ColumnType::DateTime, 0, 'DATETIME(0)'];
+        yield 'date time in milliseconds' => [ColumnType::DateTime, 3, 'DATETIME(3)'];
+        yield 'date time in microseconds' => [ColumnType::DateTime, 6, 'DATETIME(6)'];
+        yield 'timestamp in whole seconds' => [ColumnType::Timestamp, 0, 'TIMESTAMP(0)'];
+        yield 'timestamp in milliseconds' => [ColumnType::Timestamp, 3, 'TIMESTAMP(3)'];
+        yield 'timestamp in microseconds' => [ColumnType::Timestamp, 6, 'TIMESTAMP(6)'];
+    }
+
+    #[Test]
+    #[DataProvider('fractionalSeconds')]
+    public function it_maps_a_temporal_type_with_a_fractional_seconds_precision(
+        ColumnType $type,
+        int $precision,
+        string $expected,
+    ): void {
+        $table = new Table('users');
+        $table->column('value', $type)->fractionalSeconds($precision);
+
+        self::assertSame([sprintf('CREATE TABLE `users` (`value` %s NOT NULL)', $expected)], $this->create($table));
+    }
+
     #[Test]
     public function it_maps_a_decimal_with_a_precision(): void
     {

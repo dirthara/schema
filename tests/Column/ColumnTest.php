@@ -36,6 +36,7 @@ final class ColumnTest extends TestCase
         self::assertNull($column->length);
         self::assertNull($column->precision);
         self::assertNull($column->scale);
+        self::assertNull($column->fractionalSeconds);
         self::assertFalse($column->nullable);
         self::assertFalse($column->hasDefault);
         self::assertNull($column->default);
@@ -53,6 +54,7 @@ final class ColumnTest extends TestCase
 
         self::assertSame($column, $column->length(10));
         self::assertSame($column, $column->precision(8, 2));
+        self::assertSame($column, $column->fractionalSeconds(3));
         self::assertSame($column, $column->nullable());
         self::assertSame($column, $column->default('x'));
         self::assertSame($column, $column->autoIncrement());
@@ -200,6 +202,52 @@ final class ColumnTest extends TestCase
         } catch (InvalidSchemaException) {
             self::assertNull($column->precision);
             self::assertNull($column->scale);
+        }
+    }
+
+    /**
+     * @return iterable<string, array{int}>
+     */
+    public static function fractionalSeconds(): iterable
+    {
+        yield 'whole seconds' => [0];
+        yield 'milliseconds' => [3];
+        yield 'microseconds' => [6];
+    }
+
+    #[Test]
+    #[DataProvider('fractionalSeconds')]
+    public function it_records_a_fractional_seconds_precision(int $precision): void
+    {
+        self::assertSame(
+            $precision,
+            $this->column(ColumnType::DateTime)->fractionalSeconds($precision)->fractionalSeconds,
+        );
+    }
+
+    #[Test]
+    public function it_rejects_a_negative_fractional_seconds_precision(): void
+    {
+        $this->expectException(InvalidSchemaException::class);
+
+        $this->column(ColumnType::DateTime)->fractionalSeconds(-1);
+    }
+
+    #[Test]
+    public function it_reports_the_fractional_seconds_precision_it_rejected(): void
+    {
+        $column = $this->column(ColumnType::DateTime);
+
+        try {
+            $column->fractionalSeconds(7);
+            self::fail('A fractional seconds precision of 7 was accepted.');
+        } catch (InvalidSchemaException $exception) {
+            self::assertSame(
+                'The fractional seconds precision of column [email] must be between 0 and 6, got 7.',
+                $exception->getMessage(),
+            );
+            self::assertSame(['column' => 'email', 'precision' => 7, 'maximum' => 6], $exception->context);
+            self::assertNull($column->fractionalSeconds);
         }
     }
 }
