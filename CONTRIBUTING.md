@@ -124,7 +124,7 @@ Then update the supported versions table below and in
 
 | Branch | PHP | Status |
 | --- | --- | --- |
-| `0.3` | 8.5 | Active |
+| `0.4` | 8.5 | Active |
 
 Every database the package compiles schema for is exercised against a real
 server by the conformance suite.
